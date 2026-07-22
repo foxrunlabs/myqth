@@ -6,6 +6,7 @@ struct ContentView: View {
     @State private var locationManager = LocationManager()
     @State private var position: MapCameraPosition = .region(.init(center: .w1aw, span: .subsquare))
     @State private var showAlert = false
+    @State private var showSettings = false
 
     // MARK: - Computed Properties
     
@@ -31,8 +32,8 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Settings", systemImage: "gear") {
+                        showSettings = true
                     }
-                    .disabled(true)
                     .accessibilityLabel("App settings")
                 }
 
@@ -66,6 +67,9 @@ struct ContentView: View {
                 Button("OK") { locationManager.error = nil }
             } message: {
                 Text(locationManager.error?.localizedDescription ?? "An unknown error occurred.")
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
             }
         }
         .onChange(of: locationManager.error != nil) { _, hasError in
