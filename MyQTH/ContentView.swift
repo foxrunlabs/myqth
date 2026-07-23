@@ -3,10 +3,39 @@ import MapKit
 import SwiftUI
 
 struct ContentView: View {
+    private enum ZoomLevel: String, CaseIterable, CustomStringConvertible, Identifiable {
+        case field
+        case square
+        case subsquare
+
+        var span: MKCoordinateSpan {
+            switch self {
+            case .field: .field
+            case .square: .square
+            case .subsquare: .subsquare
+            }
+        }
+        
+        var id: Self { self }
+
+        var description: String {
+            switch self {
+            case .field: "Field"
+            case .square: "Square"
+            case .subsquare: "Subsquare"
+            }
+        }
+    }
+    
+    // MARK: - Properties
+
     @State private var locationManager = LocationManager()
-    @State private var position: MapCameraPosition = .region(.init(center: .w1aw, span: .subsquare))
     @State private var showAlert = false
     @State private var showSettings = false
+    @AppStorage("net.thefoxrun.MyQTH.zoom") private var zoom = ZoomLevel.subsquare
+    @State private var cameraPosition: MapCameraPosition = .region(
+        .init(center: .w1aw, span: .subsquare)
+    )
 
     // MARK: - Computed Properties
     
@@ -21,7 +50,7 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack {
-            Map(position: $position, interactionModes: [.pan, .zoom]) {
+            Map(position: $cameraPosition, interactionModes: [.pan, .zoom]) {
                 UserAnnotation(anchor: .center) {
                     Image(systemName: "antenna.radiowaves.left.and.right.circle.fill")
                         .symbolRenderingMode(.palette)
@@ -29,19 +58,26 @@ struct ContentView: View {
                         .font(.system(size: 48.0))
                 }
             }
+            .onMapCameraChange { context in cameraPosition = .region(context.region) }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Settings", systemImage: "gear") {
-                        showSettings = true
-                    }
-                    .accessibilityLabel("App settings")
+                    Button("Settings", systemImage: "gear") { showSettings = true }
+                        .accessibilityLabel("App settings")
                 }
 
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Zoom", systemImage: "square.arrowtriangle.4.outward") {
+                    Menu("Zoom", systemImage: "square.arrowtriangle.4.outward") {
+                        Picker("Zoom", selection: $zoom) {
+                            ForEach(ZoomLevel.allCases) { zoomLevel in
+                                Text(String(describing: zoomLevel))
+                                    .tag(zoomLevel)
+                            }
+                        }
+                        .onChange(of: zoom) { _, newZoom in
+                            updateCameraPosition(span: newZoom.span)
+                        }
                     }
-                    .disabled(true)
-                    .accessibilityLabel("Adjust default zoom level")
+                    .accessibilityLabel("Update zoom level and recenter map")
                 }
 
                 ToolbarSpacer(.fixed, placement: .topBarTrailing)
@@ -57,36 +93,32 @@ struct ContentView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                Button(coordinate?.maidenheadLocator ?? "Locating...") {
-                }
-                .font(.title)
-                .buttonStyle(.glass)
-                .accessibilityLabel("Opens details with coordinates in multiple formats")
+                Button(coordinate?.maidenheadLocator ?? "Locating...") {}
+                    .font(.title)
+                    .buttonStyle(.glass)
+                    .accessibilityLabel("Opens details with coordinates in multiple formats")
             }
             .alert("Location Error", isPresented: $showAlert) {
                 Button("OK") { locationManager.error = nil }
             } message: {
                 Text(locationManager.error?.localizedDescription ?? "An unknown error occurred.")
             }
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
-            }
+            .sheet(isPresented: $showSettings) { SettingsView() }
         }
-        .onChange(of: locationManager.error != nil) { _, hasError in
-            showAlert = hasError
-        }
-        .onChange(of: locationManager.location) { _, _ in
-            recenterOnUser()
-        }
+        .onChange(of: locationManager.error != nil) { _, hasError in showAlert = hasError }
+        .onChange(of: locationManager.location) { _, _ in updateCameraPosition(span: zoom.span) }
     }
 
     // MARK: - Methods
-
-    private func recenterOnUser() {
+    
+    private func updateCameraPosition(span: MKCoordinateSpan) {
         guard let coordinate else { return }
-        withAnimation(.easeOut) { position = .region(.init(center: coordinate, span: .subsquare)) }
+        withAnimation(.easeInOut) {
+            cameraPosition = .region(.init(center: coordinate, span: span))
+        }
     }
 }
+
 
 // MARK: - Preview
 
