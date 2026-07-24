@@ -30,8 +30,11 @@ struct ContentView: View {
     // MARK: - Properties
 
     @State private var locationManager = LocationManager()
+    
     @State private var showAlert = false
     @State private var showSettings = false
+    @State private var showDetails = false
+    
     @AppStorage("net.thefoxrun.MyQTH.zoom") private var zoom = ZoomLevel.subsquare
     @State private var cameraPosition: MapCameraPosition = .region(
         .init(center: .w1aw, span: .subsquare)
@@ -93,10 +96,13 @@ struct ContentView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                Button(coordinate?.maidenheadLocator ?? "Locating...") {}
-                    .font(.title)
-                    .buttonStyle(.glass)
-                    .accessibilityLabel("Opens details with coordinates in multiple formats")
+                Button(coordinate?.maidenheadLocator ?? "Locating...") {
+                    showDetails = true
+                }
+                .font(.title)
+                .buttonStyle(.glass)
+                .disabled(coordinate == nil)
+                .accessibilityLabel("Opens details with coordinates in multiple formats")
             }
             .alert("Location Error", isPresented: $showAlert) {
                 Button("OK") { locationManager.error = nil }
@@ -104,6 +110,9 @@ struct ContentView: View {
                 Text(locationManager.error?.localizedDescription ?? "An unknown error occurred.")
             }
             .sheet(isPresented: $showSettings) { SettingsView() }
+            .sheet(isPresented: $showDetails) {
+                if let coordinate { DetailsView(coordinate: coordinate) }
+            }
         }
         .onChange(of: locationManager.error != nil) { _, hasError in showAlert = hasError }
         .onChange(of: locationManager.location) { _, _ in updateCameraPosition(span: zoom.span) }
