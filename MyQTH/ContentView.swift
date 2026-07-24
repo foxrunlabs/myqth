@@ -55,7 +55,8 @@ struct ContentView: View {
         NavigationStack {
             Map(position: $cameraPosition, interactionModes: [.pan, .zoom]) {
                 UserAnnotation(anchor: .center) {
-                    Image(systemName: "antenna.radiowaves.left.and.right.circle.fill")
+                    Image(systemName: "antenna.radiowaves.left.and.right")
+                        .symbolVariant(.circle.fill)
                         .symbolRenderingMode(.palette)
                         .foregroundStyle(.white, .blue)
                         .font(.system(size: 48.0))
@@ -96,10 +97,24 @@ struct ContentView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                Button(coordinate?.maidenheadLocator ?? "Locating...") {
+                Button {
                     showDetails = true
+                } label: {
+                    if let maidenheadLocator = coordinate?.maidenheadLocator {
+                        HStack {
+                            Image(systemName: "globe")
+                            
+                            Text(maidenheadLocator)
+                                .font(.title)
+                            
+                            Image(systemName: "info")
+                                .symbolVariant(.circle)
+                        }
+                    } else {
+                        Text("Locating...")
+                            .font(.title)
+                    }
                 }
-                .font(.title)
                 .buttonStyle(.glass)
                 .disabled(coordinate == nil)
                 .accessibilityLabel("Opens details with coordinates in multiple formats")

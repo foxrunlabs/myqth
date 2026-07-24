@@ -53,6 +53,8 @@ fileprivate struct ListRow: View {
     var body: some View {
         VStack(alignment: .leading) {
             Text(coordinate)
+                .textSelection(.enabled)
+            
             Text(label)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
