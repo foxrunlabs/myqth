@@ -29,6 +29,11 @@ struct DetailsView: View {
                     coordinate: coordinate.formatted(.coordinate(format: .dms)),
                     label: "Degrees Minutes Seconds"
                 )
+                
+                ListRow(
+                    coordinate: coordinate.utm ?? "Invalid Coordinate",
+                    label: "UTM"
+                )
             }
             .navigationTitle("Position Details")
             .navigationBarTitleDisplayMode(.inline)
