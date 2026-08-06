@@ -1,9 +1,19 @@
+import CoreLocation
 import MapKit
 import SwiftUI
 
 struct DetailsView: View {
-    let coordinate: CLLocationCoordinate2D
+    let location: CLLocation
     @Environment(\.dismiss) private var dismiss
+    
+    private var coordinate: CLLocationCoordinate2D { location.coordinate }
+    private var accuracy: String {
+        if location.horizontalAccuracy >= 0 {
+            location.horizontalAccuracy.formatted(.number.precision(.fractionLength(1))) + " meters"
+        } else {
+            "Invalid Coordinate"
+        }
+    }
     
     // MARK: - Body
     
@@ -11,27 +21,32 @@ struct DetailsView: View {
         NavigationStack {
             List {
                 ListRow(
-                    coordinate: coordinate.maidenheadLocator ?? "Invalid Coordinate",
+                    value: accuracy,
+                    label: "Horizontal Accuracy"
+                )
+                
+                ListRow(
+                    value: coordinate.maidenheadLocator ?? "Invalid Coordinate",
                     label: "Maidenhead Locator"
                 )
                 
                 ListRow(
-                    coordinate: coordinate.formatted(.coordinate(format: .dd)),
+                    value: coordinate.formatted(.coordinate(format: .dd)),
                     label: "Decimal Degrees"
                 )
                 
                 ListRow(
-                    coordinate: coordinate.formatted(.coordinate(format: .ddm)),
+                    value: coordinate.formatted(.coordinate(format: .ddm)),
                     label: "Degrees Decimal Minutes"
                 )
                 
                 ListRow(
-                    coordinate: coordinate.formatted(.coordinate(format: .dms)),
+                    value: coordinate.formatted(.coordinate(format: .dms)),
                     label: "Degrees Minutes Seconds"
                 )
                 
                 ListRow(
-                    coordinate: coordinate.utm ?? "Invalid Coordinate",
+                    value: coordinate.utm ?? "Invalid Coordinate",
                     label: "UTM"
                 )
             }
@@ -50,14 +65,14 @@ struct DetailsView: View {
 // MARK: - List Row
 
 fileprivate struct ListRow: View {
-    let coordinate: String
+    let value: String
     let label: String
     
     // MARK: - Body
     
     var body: some View {
         VStack(alignment: .leading) {
-            Text(coordinate)
+            Text(value)
                 .textSelection(.enabled)
             
             Text(label)
@@ -72,6 +87,10 @@ fileprivate struct ListRow: View {
 
 #Preview {
     @Previewable @State var showDetails = true
+    let location = CLLocation(
+        latitude: CLLocationCoordinate2D.w1aw.latitude,
+        longitude: CLLocationCoordinate2D.w1aw.longitude
+    )
     
     VStack {
         Button("Show Coordinate Details") {
@@ -79,6 +98,6 @@ fileprivate struct ListRow: View {
         }
     }
     .sheet(isPresented: $showDetails) {
-        DetailsView(coordinate: .w1aw)
+        DetailsView(location: location)
     }
 }

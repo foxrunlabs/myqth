@@ -42,7 +42,7 @@ struct ContentView: View {
 
     // MARK: - Computed Properties
     
-    private var coordinate: CLLocationCoordinate2D? { locationManager.location?.coordinate }
+    private var location: CLLocation? { locationManager.location }
 
     private var isUpdateDisabled: Bool {
         locationManager.authorizationStatus == .denied ||
@@ -100,7 +100,7 @@ struct ContentView: View {
                 Button {
                     showDetails = true
                 } label: {
-                    if let maidenheadLocator = coordinate?.maidenheadLocator {
+                    if let maidenheadLocator = location?.coordinate.maidenheadLocator {
                         HStack {
                             Image(systemName: "globe")
                             
@@ -116,7 +116,7 @@ struct ContentView: View {
                     }
                 }
                 .buttonStyle(.glass)
-                .disabled(coordinate == nil)
+                .disabled(location == nil)
                 .accessibilityLabel("Opens details with coordinates in multiple formats")
             }
             .alert("Location Error", isPresented: $showAlert) {
@@ -126,19 +126,19 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showSettings) { SettingsView() }
             .sheet(isPresented: $showDetails) {
-                if let coordinate { DetailsView(coordinate: coordinate) }
+                if let location { DetailsView(location: location) }
             }
         }
         .onChange(of: locationManager.error != nil) { _, hasError in showAlert = hasError }
-        .onChange(of: locationManager.location) { _, _ in updateCameraPosition(span: zoom.span) }
+        .onChange(of: location) { _, _ in updateCameraPosition(span: zoom.span) }
     }
 
     // MARK: - Methods
     
     private func updateCameraPosition(span: MKCoordinateSpan) {
-        guard let coordinate else { return }
+        guard let location else { return }
         withAnimation(.easeInOut) {
-            cameraPosition = .region(.init(center: coordinate, span: span))
+            cameraPosition = .region(.init(center: location.coordinate, span: span))
         }
     }
 }
