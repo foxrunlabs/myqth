@@ -34,6 +34,9 @@ extension CLLocationCoordinate2D {
     /// a central meridian scale factor of 0.9996, including special‑case handling for southwest Norway
     /// and Svalbard zone assignments.
     ///
+    /// Note: Inputs are normalized to 4 decimal degrees (~10–11 meters at the equator) before projection to reduce jitter, and the
+    /// resulting easting/northing are snapped to 10‑meter precision (6‑digit easting, 7‑digit northing) for stable display.
+    ///
     /// - Returns: A UTM string containing zone/hemisphere and integer easting/northing, or `nil` if the
     ///   coordinate cannot be represented in UTM.
     var utm: String? {
@@ -44,8 +47,8 @@ extension CLLocationCoordinate2D {
             return nil
         }
         
-        let normalizedLatitude = (latitude * 10_000.0).rounded() / 10_000.0
-        let normalizedLongitude = (longitude * 10_000.0).rounded() / 10_000.0
+        let normalizedLatitude = latitude.rounded(places: 4)
+        let normalizedLongitude = longitude.rounded(places: 4)
         
         // work in radians
         let phi = Self.degreesToRadians(normalizedLatitude)
@@ -104,7 +107,19 @@ extension CLLocationCoordinate2D {
             )
         ) + (latitude < 0.0 ? Self.falseNorthing : 0.0)
         
-        return "\(zone)\(hemisphere) \(Int(easting.rounded())) \(Int(northing.rounded()))"
+        // format easting to 6-digit, 10 meter precision
+        let easting10m = Int((easting / 10.0).rounded() * 10.0)
+        let formatter = NumberFormatter()
+        formatter.minimumIntegerDigits = 6
+        formatter.usesGroupingSeparator = false
+        let formattedEasting = formatter.string(from: easting10m as NSNumber)!
+        
+        // format northing to 7-digit, 10 meter precision
+        let northing10m = Int((northing / 10.0).rounded() * 10.0)
+        formatter.minimumIntegerDigits = 7
+        let formattedNorthing = formatter.string(from: northing10m as NSNumber)!
+        
+        return "\(zone)\(hemisphere) \(formattedEasting) \(formattedNorthing)"
     }
     
     /// Computes the longitudinal UTM zone number for this coordinate, including special cases

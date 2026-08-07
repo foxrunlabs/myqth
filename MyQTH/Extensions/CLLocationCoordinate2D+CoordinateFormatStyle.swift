@@ -50,23 +50,13 @@ extension CLLocationCoordinate2D {
         }
 
         // MARK: - Helper Methods
-        /// Rounds a coordinate component to the decimal degree precision used for display.
-        ///
-        /// - Parameter value: The coordinate component to round.
-        /// - Returns: A rounded coordinate component.
-        ///
-        /// This normalized value is used as the source for DD, DDM, and DMS output so that each format represents the same
-        /// displayed location.
-        private static func normalizedDegrees(_ value: CLLocationDegrees) -> CLLocationDegrees {
-            (value * 10_000.0).rounded() / 10_000.0
-        }
         
         /// Formats a coordinate component as decimal degrees.
         ///
         /// - Parameter value: The coordinate component to format.
         /// - Returns: A formatted DD string.
         private static func dd(_ value: CLLocationDegrees) -> String {
-            let degrees = normalizedDegrees(value).formatted(.number.precision(.fractionLength(4)))
+            let degrees = value.rounded(places: 4).formatted(.number.precision(.fractionLength(4)))
             return "\(degrees)"
         }
 
@@ -88,8 +78,8 @@ extension CLLocationCoordinate2D {
             
             // Normalize to the precision used by DD so all coordinate
             // formats (DD, DDM, DMS) represent the same displayed location.
-            let totalDegrees = normalizedDegrees(value)
-            let totalMinutes = (abs(totalDegrees) * 60.0 * 1000.0).rounded() / 1000.0
+            let totalDegrees = value.rounded(places: 4)
+            let totalMinutes = (abs(totalDegrees) * 60.0).rounded(places: 3)
 
             let degrees = Int(totalMinutes / 60.0)
             let minutes = totalMinutes.truncatingRemainder(dividingBy: 60.0)
@@ -116,8 +106,8 @@ extension CLLocationCoordinate2D {
             
             // Normalize to the precision used by DD so all coordinate
             // formats (DD, DDM, DMS) represent the same displayed location.
-            let totalDegrees = normalizedDegrees(value)
-            let totalSeconds = (abs(totalDegrees) * 3600.0 * 100).rounded() / 100.0
+            let totalDegrees = value.rounded(places: 4)
+            let totalSeconds = (abs(totalDegrees) * 3600.0).rounded(places: 2)
             let degrees = Int(totalSeconds / 3600.0)
             let minutes = Int(totalSeconds.truncatingRemainder(dividingBy: 3600.0) / 60.0)
             let seconds = totalSeconds.truncatingRemainder(dividingBy: 60.0)
