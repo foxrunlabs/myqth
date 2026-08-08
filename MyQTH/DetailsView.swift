@@ -7,6 +7,7 @@ struct DetailsView: View {
     @Environment(\.dismiss) private var dismiss
     
     private var coordinate: CLLocationCoordinate2D { location.coordinate }
+    private var utm: UTMCoordinate? { UTMCoordinate(from: location.coordinate) }    
     private var accuracy: String {
         if location.horizontalAccuracy >= 0 {
             location.horizontalAccuracy.formatted(.number.precision(.fractionLength(1))) + " meters"
@@ -46,7 +47,7 @@ struct DetailsView: View {
                 )
                 
                 ListRow(
-                    value: coordinate.utm ?? "Invalid Coordinate",
+                    value: utm?.formatted(precision: .tenMeters) ?? "Invalid Coordinate",
                     label: "UTM"
                 )
             }
