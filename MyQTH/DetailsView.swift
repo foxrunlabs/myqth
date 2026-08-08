@@ -32,17 +32,17 @@ struct DetailsView: View {
                 )
                 
                 ListRow(
-                    value: coordinate.formatted(.coordinate(format: .dd)),
+                    value: coordinate.formatted(),
                     label: "Decimal Degrees"
                 )
                 
                 ListRow(
-                    value: coordinate.formatted(.coordinate(format: .ddm)),
+                    value: coordinate.formatted(notation: .ddm),
                     label: "Degrees Decimal Minutes"
                 )
                 
                 ListRow(
-                    value: coordinate.formatted(.coordinate(format: .dms)),
+                    value: coordinate.formatted(notation: .dms),
                     label: "Degrees Minutes Seconds"
                 )
                 

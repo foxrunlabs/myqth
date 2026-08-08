@@ -21,6 +21,8 @@ struct UTMCoordinate {
         var description: String { self.rawValue }
     }
     
+    // MARK: - Properties
+    
     var zone: Zone
     var hemisphere: Hemisphere
     var easting: Meters
@@ -46,6 +48,8 @@ struct UTMCoordinate {
     
     /// False northing applied for southern hemisphere UTM zones, in meters.
     private static let falseNorthing = 10_000_000.0
+    
+    // MARK: - Initializers
     
     /// Initializes to the UTM coordinate corresponding to 0°N, 0°E.
     init() {
@@ -172,6 +176,8 @@ struct UTMCoordinate {
         self.northing = Int(computedNorthing.rounded())
     }
     
+    // MARK: - Methods
+    
     /// Formats the coordinate as "<zone><hemisphere> <easting> <northing>" using the default meter precision.
     ///
     /// The output uses fixed-width integers, and values are rounded to the nearest meter (as stored).
@@ -231,17 +237,12 @@ extension UTMCoordinate {
             }
         }
         
+        // MARK: - Properties
+        
         /// The current precision used when formatting (default is `.meters`).
         var precision: Precision = .meters
         
-        /// Creates a POSIX locale number formatter with no grouping separator and the specified minimum integer digits.
-        private static func makeFormatter(minDigits: Int) -> NumberFormatter {
-            let f = NumberFormatter()
-            f.minimumIntegerDigits = minDigits
-            f.usesGroupingSeparator = false
-            f.locale = Locale(identifier: "en_US_POSIX")
-            return f
-        }
+        // MARK: - Methods
         
         /// Formats a `UTMCoordinate` into the string format "<zone><hemisphere> <easting> <northing>".
         /// Easting and northing values are snapped to the selected precision before formatting.
@@ -265,6 +266,17 @@ extension UTMCoordinate {
             var copy = self
             copy.precision = p
             return copy
+        }
+        
+        // MARK: - Helper Methods
+        
+        /// Creates a POSIX locale number formatter with no grouping separator and the specified minimum integer digits.
+        private static func makeFormatter(minDigits: Int) -> NumberFormatter {
+            let f = NumberFormatter()
+            f.minimumIntegerDigits = minDigits
+            f.usesGroupingSeparator = false
+            f.locale = Locale(identifier: "en_US_POSIX")
+            return f
         }
     }
 }
