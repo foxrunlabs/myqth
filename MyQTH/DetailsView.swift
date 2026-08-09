@@ -5,15 +5,25 @@ import SwiftUI
 struct DetailsView: View {
     let location: CLLocation
     @Environment(\.dismiss) private var dismiss
+
+    // MARK: - Computed Properties
     
-    private var coordinate: CLLocationCoordinate2D { location.coordinate }
-    private var utm: UTMCoordinate? { UTMCoordinate(from: location.coordinate) }    
     private var accuracy: String {
         if location.horizontalAccuracy >= 0 {
             location.horizontalAccuracy.formatted(.number.precision(.fractionLength(1))) + " meters"
         } else {
             "Invalid Coordinate"
         }
+    }
+    
+    private var maidenheadLocator: String {
+        MaidenheadLocator(from: location.coordinate)?.description ?? "Invalid Coordinate"
+    }
+    
+    private var coordinate: CLLocationCoordinate2D { location.coordinate }
+    
+    private var utm: String {
+        UTMCoordinate(from: location.coordinate)?.formatted(precision: .tenMeters) ?? "Invalid Coordinate"
     }
     
     // MARK: - Body
@@ -27,7 +37,7 @@ struct DetailsView: View {
                 )
                 
                 ListRow(
-                    value: coordinate.maidenheadLocator ?? "Invalid Coordinate",
+                    value: maidenheadLocator,
                     label: "Maidenhead Locator"
                 )
                 
@@ -47,7 +57,7 @@ struct DetailsView: View {
                 )
                 
                 ListRow(
-                    value: utm?.formatted(precision: .tenMeters) ?? "Invalid Coordinate",
+                    value: utm,
                     label: "UTM"
                 )
             }

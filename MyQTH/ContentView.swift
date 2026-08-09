@@ -43,6 +43,11 @@ struct ContentView: View {
     // MARK: - Computed Properties
     
     private var location: CLLocation? { locationManager.location }
+    
+    private var maidenheadLocator: MaidenheadLocator? {
+        guard let location else { return nil }
+        return MaidenheadLocator(from: location.coordinate)
+    }
 
     private var isUpdateDisabled: Bool {
         locationManager.authorizationStatus == .denied ||
@@ -100,11 +105,11 @@ struct ContentView: View {
                 Button {
                     showDetails = true
                 } label: {
-                    if let maidenheadLocator = location?.coordinate.maidenheadLocator {
+                    if let maidenheadLocator {
                         HStack {
                             Image(systemName: "globe")
                             
-                            Text(maidenheadLocator)
+                            Text(String(describing: maidenheadLocator))
                                 .font(.title)
                             
                             Image(systemName: "info")
