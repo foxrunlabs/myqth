@@ -1,9 +1,10 @@
 import CoreLocation
+import Foundation
 
 /// Represents a Maidenhead grid locator with canonical mixed-case representation
 /// (e.g., "FN31pr"). Supports construction from strings or geographic coordinates.
 struct MaidenheadLocator: CustomStringConvertible, Equatable, Hashable {
-    var locator: String
+    let locator: String
     
     /// ASCII value for the uppercase letter A.
     private static let upperA = Int(Character("A").asciiValue!)
@@ -98,7 +99,7 @@ struct MaidenheadLocator: CustomStringConvertible, Equatable, Hashable {
     
     /// Creates a canonical 6-character locator from a WGS 84 coordinate.
     ///
-    /// Normalizes latitude and longitudet to positive ranges and handles boundary cases. Maps to field/square/subsquare and returns
+    /// Normalizes latitude and longitude to positive ranges and handles boundary cases. Maps to field/square/subsquare and returns
     /// the mixed-case locator.
     ///
     /// - Parameter coordinate: A WGS 84 coordinate.
@@ -133,6 +134,23 @@ struct MaidenheadLocator: CustomStringConvertible, Equatable, Hashable {
         ])
     }
     
+    // MARK: - Methods
+    
+    /// Formats the Maidenhead locator using the default subsquare precision.
+    ///
+    /// The output uses upper case letters for field and lower case letters for subsquare.
+    ///
+    /// - Returns: The formatted Maidenhead locator string.
+    func formatted() -> String { MaidenheadFormatStyle().format(self) }
+    
+    /// Formats the Maidenhead locator with the specified display precision.
+    ///
+    /// - Parameter precision: The desired display precision (field, square, or subsquare).
+    /// - Returns: The formatted Maidenhead locator string.
+    func formatted(precision: MaidenheadFormatStyle.Precision) -> String {
+        MaidenheadFormatStyle().precision(precision).format(self)
+    }
+    
     // MARK: - Helper Methods
     
     /// Converts a field index (0–17) to an uppercase Maidenhead field character.
@@ -163,5 +181,43 @@ struct MaidenheadLocator: CustomStringConvertible, Equatable, Hashable {
     private static func lowerLetter(_ value: Int) -> Character {
         assert((0..<24).contains(value))
         return Character(UnicodeScalar(value + lowerA)!)
+    }
+}
+
+
+extension MaidenheadLocator {
+    /// A formatting style for Maidenhead locators that outputs a string truncated to the desired precision
+    /// (field, square, or subsquare). Operates on canonical mixed-case locators.
+    struct MaidenheadFormatStyle: FormatStyle {
+        typealias FormatInput = MaidenheadLocator
+        typealias FormatOutput = String
+        
+        /// Selects the display precision (2, 4, or 6 characters) for the Maidenhead locator.
+        ///
+        /// - `field`: Uses 2 characters representing the field.
+        /// - `square`: Uses 4 characters representing the field and square.
+        /// - `subsquare`: Uses 6 characters representing the field, square, and subsquare.
+        enum Precision: Int, Codable {
+            case field = 2
+            case square = 4
+            case subsquare = 6
+            
+            var numberOfCharacters: Int { rawValue }
+        }
+        
+        /// The current precision used when formatting. Defaults to `.subsquare` (6 characters).
+        private var precision: Precision = .subsquare
+        
+        /// Returns the locator string truncated to the number of characters specified by `precision`.
+        func format(_ value: FormatInput) -> FormatOutput {
+            String(value.locator.prefix(precision.numberOfCharacters))
+        }
+        
+        /// Returns a copy of the style configured with the given precision.
+        func precision(_ p: Precision) -> Self {
+            var copy = self
+            copy.precision = p
+            return copy
+        }
     }
 }

@@ -23,10 +23,10 @@ struct UTMCoordinate {
     
     // MARK: - Properties
     
-    var zone: Zone
-    var hemisphere: Hemisphere
-    var easting: Meters
-    var northing: Meters
+    let zone: Zone
+    let hemisphere: Hemisphere
+    let easting: Meters
+    let northing: Meters
     
     /// Semi‑major axis of the WGS 84 ellipsoid, in meters.
     private static let a = 6_378_137.0
@@ -240,7 +240,7 @@ extension UTMCoordinate {
         // MARK: - Properties
         
         /// The current precision used when formatting (default is `.meters`).
-        var precision: Precision = .meters
+        private var precision: Precision = .meters
         
         // MARK: - Methods
         

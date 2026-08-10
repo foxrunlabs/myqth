@@ -109,7 +109,7 @@ struct ContentView: View {
                         HStack {
                             Image(systemName: "globe")
                             
-                            Text(String(describing: maidenheadLocator))
+                            Text(maidenheadLocator.formatted())
                                 .font(.title)
                             
                             Image(systemName: "info")

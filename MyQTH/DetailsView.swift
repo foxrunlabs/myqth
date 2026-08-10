@@ -17,7 +17,7 @@ struct DetailsView: View {
     }
     
     private var maidenheadLocator: String {
-        MaidenheadLocator(from: location.coordinate)?.description ?? "Invalid Coordinate"
+        MaidenheadLocator(from: location.coordinate)?.formatted() ?? "Invalid Coordinate"
     }
     
     private var coordinate: CLLocationCoordinate2D { location.coordinate }
