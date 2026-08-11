@@ -4,13 +4,13 @@ import Foundation
 extension CLLocationCoordinate2D {
     /// Formats the coordinate using the default notation (decimal degrees).
     /// - Returns: A string in the form "<latitude>, <longitude>" with four fractional digits per component.
-    func formatted() -> String { CoordinateFormatStyle().format(self) }
+    func formatted() -> String { FormatStyle().format(self) }
     
     /// Formats the coordinate using the specified notation.
     /// - Parameter notation: The coordinate notation to apply (.dd, .ddm, or .dms).
     /// - Returns: A formatted string representation of the coordinate.
-    func formatted(notation: CoordinateFormatStyle.Notation) -> String {
-        CoordinateFormatStyle().notation(notation).format(self)
+    func formatted(notation: FormatStyle.Notation) -> String {
+        FormatStyle().notation(notation).format(self)
     }
 }
 
@@ -23,7 +23,7 @@ extension CLLocationCoordinate2D {
     ///
     /// All formats are derived from the same normalized decimal-degree value so that the displayed DD, DDM, and DMS
     /// representations remain consistent with each other.
-    struct CoordinateFormatStyle: FormatStyle {
+    struct FormatStyle: Foundation.FormatStyle {
         typealias FormatInput = CLLocationCoordinate2D
         typealias FormatOutput = String
 

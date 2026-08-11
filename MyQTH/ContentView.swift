@@ -46,12 +46,17 @@ struct ContentView: View {
     
     private var maidenheadLocator: MaidenheadLocator? {
         guard let location else { return nil }
-        return MaidenheadLocator(from: location.coordinate)
+        return try? MaidenheadLocator(from: location.coordinate)
     }
 
     private var isUpdateDisabled: Bool {
         locationManager.authorizationStatus == .denied ||
             locationManager.authorizationStatus == .restricted
+    }
+    
+    private var isDetailDisabled: Bool {
+        guard let location else { return true }
+        return location.horizontalAccuracy < 0
     }
 
     // MARK: - Body
@@ -121,7 +126,7 @@ struct ContentView: View {
                     }
                 }
                 .buttonStyle(.glass)
-                .disabled(location == nil)
+                .disabled(isDetailDisabled)
                 .accessibilityLabel("Opens details with coordinates in multiple formats")
             }
             .alert("Location Error", isPresented: $showAlert) {

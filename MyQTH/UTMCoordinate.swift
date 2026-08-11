@@ -76,19 +76,21 @@ struct UTMCoordinate {
     /// Creates a UTM coordinate from a WGS 84 latitude/longitude.
     ///
     /// - Note:
-    ///   - The supported latitude range is −80° to 84°. Coordinates outside this range return `nil`.
+    ///   - The supported latitude range is −80° to 84°.
     ///   - Special-case handling is applied for southwest Norway and Svalbard zones.
     ///   - Easting and northing values are rounded to the nearest meter.
     ///   - No input normalization is performed; the result reflects the raw input coordinate.
     ///
     /// - Parameter coordinate: The WGS 84 latitude and longitude coordinate.
-    /// - Returns: A UTM coordinate if the coordinate is valid and within the supported range; otherwise, `nil`.
-    init?(from coordinate: CLLocationCoordinate2D) {
-        guard
-            CLLocationCoordinate2DIsValid(coordinate),
-            (-80.0...84.0).contains(coordinate.latitude)
-        else {
-            return nil
+    /// - Throws: `UTMCoordinate.Error.invalidCoordinate` if the coordinate is invalid.
+    ///           `UTMCoordinate.Error.invalidLatitude` if the latitude is outside the supported range (−80° to 84°).
+    init(from coordinate: CLLocationCoordinate2D) throws {        
+        guard CLLocationCoordinate2DIsValid(coordinate) else {
+            throw Error.invalidCoordinate(coordinate)
+        }
+        
+        guard (-80.0...84.0).contains(coordinate.latitude) else {
+            throw Error.invalidLatitude(coordinate.latitude)
         }
         
         let latitude = coordinate.latitude
@@ -183,15 +185,46 @@ struct UTMCoordinate {
     /// The output uses fixed-width integers, and values are rounded to the nearest meter (as stored).
     ///
     /// - Returns: The formatted UTM string.
-    func formatted() -> String { UTMFormatStyle().format(self) }
+    func formatted() -> String { FormatStyle().format(self) }
     
     /// Formats the coordinate with the specified display precision, snapping easting and northing to the nearest multiple of that
     /// precision.
     ///
     /// - Parameter precision: The desired display precision (meters, 10 m, 100 m, or 1 km).
     /// - Returns: The formatted UTM string.
-    func formatted(precision: UTMFormatStyle.Precision) -> String {
-        UTMFormatStyle().precision(precision).format(self)
+    func formatted(precision: FormatStyle.Precision) -> String {
+        FormatStyle().precision(precision).format(self)
+    }
+}
+
+
+extension UTMCoordinate {
+    /// Defines domain-specific errors that can arise during UTM coordinate creation and validation.
+    enum Error: LocalizedError {
+        /// The provided coordinate failed validation.
+        case invalidCoordinate(CLLocationCoordinate2D)
+        /// The latitude is outside the supported UTM range (−80° to 84°).
+        case invalidLatitude(Double)
+        
+        /// Provides a short, user-presentable description of the error.
+        var errorDescription: String? {
+            switch self {
+            case .invalidCoordinate:
+                "Invalid coordinate"
+            case .invalidLatitude:
+                "Invalid latitude"
+            }
+        }
+        
+        /// Provides more detailed context about the error, including the offending value and range when applicable.
+        var failureReason: String? {
+            switch self {
+            case .invalidCoordinate(let coordinate):
+                "\(coordinate) is invalid."
+            case .invalidLatitude(let latitude):
+                "\(latitude) is invalid. Latitude must be between -80 and 84 degrees."
+            }
+        }
     }
 }
 
@@ -200,7 +233,7 @@ extension UTMCoordinate {
     /// A formatting style for `UTMCoordinate` values that outputs the coordinate as
     /// "<zone><hemisphere> <easting> <northing>" strings with fixed-width integers.
     /// Supports configurable precision (meters, 10 m, 100 m, 1 km) via the `Precision` enumeration.
-    struct UTMFormatStyle: FormatStyle {
+    struct FormatStyle: Foundation.FormatStyle {
         typealias FormatInput = UTMCoordinate
         typealias FormatOutput = String
         

@@ -8,22 +8,35 @@ struct DetailsView: View {
 
     // MARK: - Computed Properties
     
-    private var accuracy: String {
-        if location.horizontalAccuracy >= 0 {
-            location.horizontalAccuracy.formatted(.number.precision(.fractionLength(1))) + " meters"
-        } else {
-            "Invalid Coordinate"
+    private var horizontalAccuracy: String {
+        let accuracy = Measurement(
+            value: location.horizontalAccuracy,
+            unit: UnitLength.meters
+        )
+        
+        return accuracy.formatted(.measurement(
+            width: .wide,
+            usage: .asProvided,
+            numberFormatStyle: .number.precision(.fractionLength(1))
+        ))
+    }
+    
+    private var maidenheadLocator: AttributedString {
+        do {
+            return AttributedString(try MaidenheadLocator(from: location.coordinate).formatted())
+        } catch {
+            return attributedError(error)
         }
     }
     
-    private var maidenheadLocator: String {
-        MaidenheadLocator(from: location.coordinate)?.formatted() ?? "Invalid Coordinate"
-    }
-    
-    private var coordinate: CLLocationCoordinate2D { location.coordinate }
-    
-    private var utm: String {
-        UTMCoordinate(from: location.coordinate)?.formatted(precision: .tenMeters) ?? "Invalid Coordinate"
+    private var utmCoordinate: AttributedString {
+        do {
+            return AttributedString(
+                try UTMCoordinate(from: location.coordinate).formatted(precision: .tenMeters)
+            )
+        } catch {
+            return attributedError(error)
+        }
     }
     
     // MARK: - Body
@@ -32,32 +45,32 @@ struct DetailsView: View {
         NavigationStack {
             List {
                 ListRow(
-                    value: accuracy,
+                    value: horizontalAccuracy,
                     label: "Horizontal Accuracy"
                 )
                 
-                ListRow(
+                AttributedListRow(
                     value: maidenheadLocator,
                     label: "Maidenhead Locator"
                 )
                 
                 ListRow(
-                    value: coordinate.formatted(),
+                    value: location.coordinate.formatted(),
                     label: "Decimal Degrees"
                 )
                 
                 ListRow(
-                    value: coordinate.formatted(notation: .ddm),
+                    value: location.coordinate.formatted(notation: .ddm),
                     label: "Degrees Decimal Minutes"
                 )
                 
                 ListRow(
-                    value: coordinate.formatted(notation: .dms),
+                    value: location.coordinate.formatted(notation: .dms),
                     label: "Degrees Minutes Seconds"
                 )
                 
-                ListRow(
-                    value: utm,
+                AttributedListRow(
+                    value: utmCoordinate,
                     label: "UTM"
                 )
             }
@@ -70,6 +83,14 @@ struct DetailsView: View {
             }
         }
     }
+    
+    // MARK: - Helper Methods
+    
+    private func attributedError(_ error: Error) -> AttributedString {
+        var s = AttributedString(error.localizedDescription)
+        s[AttributeScopes.SwiftUIAttributes.ForegroundColorAttribute.self] = .red
+        return s
+    }
 }
 
 
@@ -77,6 +98,27 @@ struct DetailsView: View {
 
 fileprivate struct ListRow: View {
     let value: String
+    let label: String
+    
+    // MARK: - Body
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(value)
+                .textSelection(.enabled)
+            
+            Text(label)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+
+// MARK: - Attributed List Row
+
+fileprivate struct AttributedListRow: View {
+    let value: AttributedString
     let label: String
     
     // MARK: - Body

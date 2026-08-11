@@ -78,14 +78,16 @@ struct MaidenheadLocator: CustomStringConvertible, Equatable, Hashable {
     /// (lowercased subsquare).
     ///
     /// - Parameter locator: A Maidenhead locator string.
-    /// - Returns: An instance if the input is valid; otherwise, `nil`.
-    init?(locator: String) {
+    /// - Throws: `MaidenheadLocator.Error.invalidLocator` if the input is not a valid locator.
+    init(locator: String) throws {
         // Trim and normalize
         let trimmedLocator = locator.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         
         // Validate the input for 4- or 6-character locators
         let pattern = /[A-R]{2}[0-9]{2}([A-X]{2})?/
-        guard let _ = try? pattern.wholeMatch(in: trimmedLocator) else { return nil }
+        guard let _ = try? pattern.wholeMatch(in: trimmedLocator) else {
+            throw Error.invalidLocator(trimmedLocator)
+        }
         
         // Format locator appropriately
         if trimmedLocator.count == 4 {
@@ -103,9 +105,11 @@ struct MaidenheadLocator: CustomStringConvertible, Equatable, Hashable {
     /// the mixed-case locator.
     ///
     /// - Parameter coordinate: A WGS 84 coordinate.
-    /// - Returns: An instance if the coordinate is valid; otherwise, `nil`.
-    init?(from coordinate: CLLocationCoordinate2D) {
-        guard CLLocationCoordinate2DIsValid(coordinate) else { return nil }
+    /// - Throws: `MaidenheadLocator.Error.invalidCoordinate` if the coordinate is invalid.
+    init(from coordinate: CLLocationCoordinate2D) throws {
+        guard CLLocationCoordinate2DIsValid(coordinate) else {
+            throw Error.invalidCoordinate(coordinate)
+        }
         
         // Normalize longitude and latitude to the positive ranges used by the Maidenhead grid
         // system.
@@ -141,14 +145,14 @@ struct MaidenheadLocator: CustomStringConvertible, Equatable, Hashable {
     /// The output uses upper case letters for field and lower case letters for subsquare.
     ///
     /// - Returns: The formatted Maidenhead locator string.
-    func formatted() -> String { MaidenheadFormatStyle().format(self) }
+    func formatted() -> String { FormatStyle().format(self) }
     
     /// Formats the Maidenhead locator with the specified display precision.
     ///
     /// - Parameter precision: The desired display precision (field, square, or subsquare).
     /// - Returns: The formatted Maidenhead locator string.
-    func formatted(precision: MaidenheadFormatStyle.Precision) -> String {
-        MaidenheadFormatStyle().precision(precision).format(self)
+    func formatted(precision: FormatStyle.Precision) -> String {
+        FormatStyle().precision(precision).format(self)
     }
     
     // MARK: - Helper Methods
@@ -186,9 +190,40 @@ struct MaidenheadLocator: CustomStringConvertible, Equatable, Hashable {
 
 
 extension MaidenheadLocator {
+    /// Domain-specific errors for Maidenhead locator creation and validation.
+    enum Error: LocalizedError {
+        /// Indicates the provided coordinate was invalid.
+        case invalidCoordinate(CLLocationCoordinate2D)
+        /// Indicates the provided locator string failed validation.
+        case invalidLocator(String)
+        
+        /// Provides a short, user-presentable description of the error.
+        var errorDescription: String? {
+            switch self {
+            case .invalidCoordinate:
+                "Invalid coordinate"
+            case .invalidLocator:
+                "Invalid locator"
+            }
+        }
+        
+        /// Provides a more detailed failure reason including the offending value.
+        var failureReason: String? {
+            switch self {
+            case .invalidCoordinate(let coordinate):
+                return "\(coordinate) is invalid."
+            case .invalidLocator(let locator):
+                return "\(locator) is invalid."
+            }
+        }
+    }
+}
+
+
+extension MaidenheadLocator {
     /// A formatting style for Maidenhead locators that outputs a string truncated to the desired precision
     /// (field, square, or subsquare). Operates on canonical mixed-case locators.
-    struct MaidenheadFormatStyle: FormatStyle {
+    struct FormatStyle: Foundation.FormatStyle {
         typealias FormatInput = MaidenheadLocator
         typealias FormatOutput = String
         
