@@ -23,7 +23,8 @@ struct DetailsView: View {
     
     private var maidenheadLocator: AttributedString {
         do {
-            return AttributedString(try MaidenheadLocator(from: location.coordinate).formatted())
+            let maidenhead = try MaidenheadLocator(from: location.coordinate)
+            return AttributedString(maidenhead.formatted())
         } catch {
             return attributedError(error)
         }
@@ -31,9 +32,17 @@ struct DetailsView: View {
     
     private var utmCoordinate: AttributedString {
         do {
-            return AttributedString(
-                try UTMCoordinate(from: location.coordinate).formatted(precision: .tenMeters)
-            )
+            let utm = try UTMCoordinate(from: location.coordinate)
+            return AttributedString(utm.formatted(precision: .tenMeters))
+        } catch {
+            return attributedError(error)
+        }
+    }
+    
+    private var mgrsCoordinate: AttributedString {
+        do {
+            let mgrs = try MGRSCoordinate(from: location.coordinate)
+            return AttributedString(mgrs.formatted(precision: .tenMeters))
         } catch {
             return attributedError(error)
         }
@@ -44,35 +53,13 @@ struct DetailsView: View {
     var body: some View {
         NavigationStack {
             List {
-                ListRow(
-                    value: horizontalAccuracy,
-                    label: "Horizontal Accuracy"
-                )
-                
-                AttributedListRow(
-                    value: maidenheadLocator,
-                    label: "Maidenhead Locator"
-                )
-                
-                ListRow(
-                    value: location.coordinate.formatted(),
-                    label: "Decimal Degrees"
-                )
-                
-                ListRow(
-                    value: location.coordinate.formatted(notation: .ddm),
-                    label: "Degrees Decimal Minutes"
-                )
-                
-                ListRow(
-                    value: location.coordinate.formatted(notation: .dms),
-                    label: "Degrees Minutes Seconds"
-                )
-                
-                AttributedListRow(
-                    value: utmCoordinate,
-                    label: "UTM"
-                )
+                ListRow(horizontalAccuracy, label: "Horizontal Accuracy")
+                ListRow(maidenheadLocator, label: "Maidenhead Locator")
+                ListRow(location.coordinate.formatted(), label: "Decimal Degrees")
+                ListRow(location.coordinate.formatted(notation: .ddm), label: "Degrees Decimal Minutes")
+                ListRow(location.coordinate.formatted(notation: .dms), label: "Degrees Minutes Seconds")
+                ListRow(utmCoordinate, label: "UTM")
+                ListRow(mgrsCoordinate, label: "MGRS")
             }
             .navigationTitle("Position Details")
             .navigationBarTitleDisplayMode(.inline)
@@ -97,35 +84,26 @@ struct DetailsView: View {
 // MARK: - List Row
 
 fileprivate struct ListRow: View {
-    let value: String
+    let title: AttributedString
     let label: String
     
-    // MARK: - Body
+    // MARK: - Initializers
     
-    var body: some View {
-        VStack(alignment: .leading) {
-            Text(value)
-                .textSelection(.enabled)
-            
-            Text(label)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-        }
+    init(_ title: String, label: String) {
+        self.title = AttributedString(title)
+        self.label = label
     }
-}
-
-
-// MARK: - Attributed List Row
-
-fileprivate struct AttributedListRow: View {
-    let value: AttributedString
-    let label: String
+    
+    init(_ title: AttributedString, label: String) {
+        self.title = title
+        self.label = label
+    }
     
     // MARK: - Body
     
     var body: some View {
         VStack(alignment: .leading) {
-            Text(value)
+            Text(title)
                 .textSelection(.enabled)
             
             Text(label)

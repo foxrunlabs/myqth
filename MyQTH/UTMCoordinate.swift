@@ -204,7 +204,7 @@ extension UTMCoordinate {
         /// The provided coordinate failed validation.
         case invalidCoordinate(CLLocationCoordinate2D)
         /// The latitude is outside the supported UTM range (−80° to 84°).
-        case invalidLatitude(Double)
+        case invalidLatitude(CLLocationDegrees)
         
         /// Provides a short, user-presentable description of the error.
         var errorDescription: String? {
@@ -280,10 +280,8 @@ extension UTMCoordinate {
         /// Formats a `UTMCoordinate` into the string format "<zone><hemisphere> <easting> <northing>".
         /// Easting and northing values are snapped to the selected precision before formatting.
         func format(_ value: FormatInput) -> FormatOutput {
-            let factor = precision.snapFactor
-            
-            let snappedEasting = Int((Double(value.easting) / Double(factor)).rounded()) * factor
-            let snappedNorthing = Int((Double(value.northing) / Double(factor)).rounded()) * factor
+            let snappedEasting = value.easting / precision.snapFactor
+            let snappedNorthing = value.northing / precision.snapFactor
             
             let eastingFormatter = Self.makeFormatter(minDigits: precision.minimumEastingDigits)
             let northingFormatter = Self.makeFormatter(minDigits: precision.minimumNorthingDigits)
