@@ -166,15 +166,15 @@ extension MGRSCoordinate {
         /// Represents the precision levels available for formatting an MGRS coordinate.
         enum Precision: Int, Codable {
             /// Precision at 1 meter.
-            case meters = 1
+            case meter = 1
             /// Precision at 10 meters.
-            case tenMeters = 10
+            case tenMeter = 10
             /// Precision at 100 meters.
-            case hundredMeters = 100
+            case hundredMeter = 100
             /// Precision at 1 kilometer.
-            case kilometers = 1000
+            case kilometer = 1000
             /// Precision at 10 kilometers.
-            case tenKilometers = 10_000
+            case tenKilometer = 10_000
             
             /// The snap factor to use when reducing precision; corresponds to the raw integer value.
             var snapFactor: Int { rawValue }
@@ -182,11 +182,11 @@ extension MGRSCoordinate {
             /// The minimum number of integer digits to display for this precision.
             var minimumDigits: Int {
                 switch self {
-                case .meters: 5
-                case .tenMeters: 4
-                case .hundredMeters: 3
-                case .kilometers: 2
-                case .tenKilometers: 1
+                case .meter: 5
+                case .tenMeter: 4
+                case .hundredMeter: 3
+                case .kilometer: 2
+                case .tenKilometer: 1
                 }
             }
         }
@@ -194,7 +194,7 @@ extension MGRSCoordinate {
         // MARK: - Properties
         
         /// The precision level to use for formatting.
-        private var precision: Precision = .meters
+        private var precision: Precision = .meter
         
         // MARK: - Methods
         
@@ -206,7 +206,10 @@ extension MGRSCoordinate {
             let snappedEasting = value.easting / precision.snapFactor
             let snappedNorthing = value.northing / precision.snapFactor
             
-            let formatter = Self.makeFormatter(minDigits: precision.minimumDigits)
+            let formatter = NumberFormatter()
+            formatter.minimumIntegerDigits = precision.minimumDigits
+            formatter.usesGroupingSeparator = false
+            formatter.locale = Locale(identifier: "en_US_POSIX")
             
             let easting = formatter.string(from: snappedEasting as NSNumber) ?? String(snappedEasting)
             let northing = formatter.string(from: snappedNorthing as NSNumber) ?? String(snappedNorthing)
@@ -222,20 +225,6 @@ extension MGRSCoordinate {
             var copy = self
             copy.precision = p
             return copy
-        }
-        
-        // MARK: - Helper Methods
-        
-        /// Creates and returns a `NumberFormatter` configured for formatting MGRS coordinate components.
-        ///
-        /// - Parameter minDigits: The minimum number of integer digits the formatter should use.
-        /// - Returns: A configured `NumberFormatter` instance.
-        private static func makeFormatter(minDigits: Int) -> NumberFormatter {
-            let f = NumberFormatter()
-            f.minimumIntegerDigits = minDigits
-            f.usesGroupingSeparator = false
-            f.locale = Locale(identifier: "en_US_POSIX")
-            return f
         }
     }
 }

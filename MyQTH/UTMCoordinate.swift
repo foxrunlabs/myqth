@@ -14,7 +14,7 @@ struct UTMCoordinate {
     typealias Zone = Int
     typealias Meters = Int
     
-    enum Hemisphere: String, CaseIterable, CustomStringConvertible {
+    enum Hemisphere: String, CustomStringConvertible {
         case north = "N"
         case south = "S"
         
@@ -163,7 +163,7 @@ struct UTMCoordinate {
             (5.0 - (18.0 * T) + T2 + (72.0 * C) - (58.0 * Self.ep2)) * A5 / 120.0
         ) + Self.falseEasting
         
-        self.easting = Int(computedEasting.rounded())
+        self.easting = Meters(computedEasting)
         
         // compute northing
         let computedNorthing = Self.k0 * (
@@ -175,7 +175,7 @@ struct UTMCoordinate {
             )
         ) + (latitude < 0.0 ? Self.falseNorthing : 0.0)
         
-        self.northing = Int(computedNorthing.rounded())
+        self.northing = Meters(computedNorthing)
     }
     
     // MARK: - Methods
@@ -241,39 +241,39 @@ extension UTMCoordinate {
         /// accordingly.
         enum Precision: Int, Codable {
             /// Precision at the meter level.
-            case meters = 1
+            case meter = 1
             /// Precision at 10 meters.
-            case tenMeters = 10
+            case tenMeter = 10
             /// Precision at 100 meters.
-            case hundredMeters = 100
+            case hundredMeter = 100
             /// Precision at 1 kilometer.
-            case kilometers = 1000
+            case kilometer = 1000
             
             var snapFactor: Int { rawValue }
             
             var minimumEastingDigits: Int {
                 switch self {
-                case .meters: 6
-                case .tenMeters: 5
-                case .hundredMeters: 4
-                case .kilometers: 3
+                case .meter: 6
+                case .tenMeter: 5
+                case .hundredMeter: 4
+                case .kilometer: 3
                 }
             }
             
             var minimumNorthingDigits: Int {
                 switch self {
-                case .meters: 7
-                case .tenMeters: 6
-                case .hundredMeters: 5
-                case .kilometers: 4
+                case .meter: 7
+                case .tenMeter: 6
+                case .hundredMeter: 5
+                case .kilometer: 4
                 }
             }
         }
         
         // MARK: - Properties
         
-        /// The current precision used when formatting (default is `.meters`).
-        private var precision: Precision = .meters
+        /// The current precision used when formatting (default is `.meter`).
+        private var precision: Precision = .meter
         
         // MARK: - Methods
         

@@ -8,6 +8,13 @@ struct DetailsView: View {
 
     // MARK: - Computed Properties
     
+    private var coordinate: CLLocationCoordinate2D {
+        let places = CLLocationCoordinate2D.FormatStyle.Precision.tenMeter.ddMinimumPlaces
+        let latitude = location.coordinate.latitude.rounded(places: places)
+        let longitude = location.coordinate.longitude.rounded(places: places)
+        return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    }
+    
     private var horizontalAccuracy: String {
         let accuracy = Measurement(
             value: location.horizontalAccuracy,
@@ -23,7 +30,7 @@ struct DetailsView: View {
     
     private var maidenheadLocator: AttributedString {
         do {
-            let maidenhead = try MaidenheadLocator(from: location.coordinate)
+            let maidenhead = try MaidenheadLocator(from: coordinate)
             return AttributedString(maidenhead.formatted())
         } catch {
             return attributedError(error)
@@ -32,8 +39,8 @@ struct DetailsView: View {
     
     private var utmCoordinate: AttributedString {
         do {
-            let utm = try UTMCoordinate(from: location.coordinate)
-            return AttributedString(utm.formatted(precision: .tenMeters))
+            let utm = try UTMCoordinate(from: coordinate)
+            return AttributedString(utm.formatted(precision: .tenMeter))
         } catch {
             return attributedError(error)
         }
@@ -41,8 +48,8 @@ struct DetailsView: View {
     
     private var mgrsCoordinate: AttributedString {
         do {
-            let mgrs = try MGRSCoordinate(from: location.coordinate)
-            return AttributedString(mgrs.formatted(precision: .tenMeters))
+            let mgrs = try MGRSCoordinate(from: coordinate)
+            return AttributedString(mgrs.formatted(precision: .tenMeter))
         } catch {
             return attributedError(error)
         }
@@ -55,9 +62,9 @@ struct DetailsView: View {
             List {
                 ListRow(horizontalAccuracy, label: "Horizontal Accuracy")
                 ListRow(maidenheadLocator, label: "Maidenhead Locator")
-                ListRow(location.coordinate.formatted(), label: "Decimal Degrees")
-                ListRow(location.coordinate.formatted(notation: .ddm), label: "Degrees Decimal Minutes")
-                ListRow(location.coordinate.formatted(notation: .dms), label: "Degrees Minutes Seconds")
+                ListRow(coordinate.formatted(notation: .dd, precision: .tenMeter), label: "Decimal Degrees")
+                ListRow(coordinate.formatted(notation: .ddm, precision: .tenMeter), label: "Degrees Decimal Minutes")
+                ListRow(coordinate.formatted(notation: .dms, precision: .tenMeter), label: "Degrees Minutes Seconds")
                 ListRow(utmCoordinate, label: "UTM")
                 ListRow(mgrsCoordinate, label: "MGRS")
             }
