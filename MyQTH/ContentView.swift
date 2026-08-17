@@ -35,9 +35,11 @@ struct ContentView: View {
     @State private var showSettings = false
     @State private var showDetails = false
     
+    @AppStorage("net.thefoxrun.MyQTH.callsign") private var callsign = ""
     @AppStorage("net.thefoxrun.MyQTH.zoom") private var zoom = ZoomLevel.subsquare
+    
     @State private var cameraPosition: MapCameraPosition = .region(
-        .init(center: .w1aw, span: .subsquare)
+        .init(center: CLLocationCoordinate2D(), span: .subsquare)
     )
 
     // MARK: - Computed Properties
@@ -64,13 +66,11 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             Map(position: $cameraPosition, interactionModes: [.pan, .zoom]) {
-                UserAnnotation(anchor: .center) {
-                    Image(systemName: "antenna.radiowaves.left.and.right")
-                        .symbolVariant(.circle.fill)
-                        .symbolRenderingMode(.palette)
-                        .foregroundStyle(.white, .blue)
-                        .font(.system(size: 48.0))
-                }
+                Marker(
+                    callsign,
+                    systemImage: "antenna.radiowaves.left.and.right",
+                    coordinate: location?.coordinate ?? CLLocationCoordinate2D()
+                )
             }
             .onMapCameraChange { context in cameraPosition = .region(context.region) }
             .toolbar {

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @AppStorage("net.thefoxrun.MyQTH.callsign") private var callsign = ""
     @AppStorage("net.thefoxrun.MyQTH.autoUpdate") private var autoUpdate = false
     @Environment(\.dismiss) private var dismiss
     private let contactURL = URL(string: "mailto:foxrunlabs@icloud.com")!
@@ -11,6 +12,13 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section("Preferences") {
+                    LabeledContent("Callsign") {
+                        TextField("Callsign", text: $callsign)
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.characters)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    
                     Toggle(isOn: $autoUpdate) {
                         VStack(alignment: .leading, spacing: 0) {
                             Text("Auto Update Position")
