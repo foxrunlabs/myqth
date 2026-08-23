@@ -72,7 +72,6 @@ struct ContentView: View {
                     coordinate: location?.coordinate ?? CLLocationCoordinate2D()
                 )
             }
-            .onMapCameraChange { context in cameraPosition = .region(context.region) }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Settings", systemImage: "gear") { showSettings = true }
@@ -98,7 +97,11 @@ struct ContentView: View {
 
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        locationManager.requestLocation()
+                        if locationManager.autoUpdate {
+                            updateCameraPosition(span: zoom.span)
+                        } else {
+                            locationManager.requestLocation()
+                        }
                     } label: {
                         Image(systemName: "location")
                     }
@@ -134,13 +137,17 @@ struct ContentView: View {
             } message: {
                 Text(locationManager.error?.localizedDescription ?? "An unknown error occurred.")
             }
-            .sheet(isPresented: $showSettings) { SettingsView() }
+            .sheet(isPresented: $showSettings) { SettingsView(locationManager: locationManager) }
             .sheet(isPresented: $showDetails) {
                 if let location { DetailsView(location: location) }
             }
         }
         .onChange(of: locationManager.error != nil) { _, hasError in showAlert = hasError }
-        .onChange(of: location) { _, _ in updateCameraPosition(span: zoom.span) }
+        .onChange(of: location) { oldLocation, _ in
+            if oldLocation == nil || !locationManager.autoUpdate {
+                updateCameraPosition(span: zoom.span)
+            }
+        }
     }
 
     // MARK: - Methods

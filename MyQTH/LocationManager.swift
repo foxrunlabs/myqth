@@ -37,6 +37,14 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     /// The authorization status.
     private(set) var authorizationStatus: CLAuthorizationStatus = .notDetermined
     
+    /// Position update mode setting.
+    var autoUpdate = false {
+        didSet {
+            UserDefaults.standard.set(autoUpdate, forKey: "net.thefoxrun.MyQTH.autoUpdate")
+            configureUpdates()
+        }
+    }
+    
     /// The most recent error, suitable for presenting to the user. Set to `nil` when a location is successfully obtained or when
     /// authorization allows requesting location.
     var error: LocationError?
@@ -53,11 +61,13 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     /// current authorization status.
     override init() {
         super.init()
+        autoUpdate = UserDefaults.standard.bool(forKey: "net.thefoxrun.MyQTH.autoUpdate")
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
+        manager.distanceFilter = 10
         authorizationStatus = manager.authorizationStatus
     }
-    
+        
     // MARK: - Methods
     
     /// Requests a single location update.
@@ -65,15 +75,31 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     /// This method calls `CLLocationManager.requestLocation()`. The result is delivered via
     /// `locationManager(_:didUpdateLocations:)` or `locationManager(_:didFailWithError:)`.
     func requestLocation() {
+        guard !autoUpdate else { return }
         manager.requestLocation()
+    }
+    
+    /// Starts or stops location updates based on `autoUpdate` value and `authorizationStatus`.
+    private func configureUpdates() {
+        guard
+            authorizationStatus == .authorizedAlways || authorizationStatus == .authorizedWhenInUse
+        else {
+            return
+        }
+        
+        if autoUpdate {
+            manager.startUpdatingLocation()
+        } else {
+            manager.stopUpdatingLocation()
+        }
     }
     
     // MARK: - CLLocationManagerDelegate Methods
     
     /// Handles changes to authorization.
     ///
-    /// - Authorized (.authorizedAlways / .authorizedWhenInUse): Clears errors and requests a
-    ///   one-shot location update.
+    /// - Authorized (.authorizedAlways / .authorizedWhenInUse): Clears errors and requests either a one-shot location update or
+    /// configures continuous location updates.
     /// - Not determined: Clears location and prompts for when-in-use authorization.
     /// - Restricted/Denied: Clears location and surfaces a `.permissionDenied` error.
     /// - Unknown: Surfaces an `.unknown` error.
@@ -83,14 +109,20 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
         
         switch manager.authorizationStatus {
         case .authorizedAlways, .authorizedWhenInUse:
-            requestLocation()
+            if autoUpdate {
+                configureUpdates()
+            } else {
+                requestLocation()
+            }
         case .notDetermined:
             location = nil
             manager.requestWhenInUseAuthorization()
         case .restricted, .denied:
+            manager.stopUpdatingLocation()
             location = nil
             error = .permissionDenied
         @unknown default:
+            manager.stopUpdatingLocation()
             location = nil
             error = .unknown
         }

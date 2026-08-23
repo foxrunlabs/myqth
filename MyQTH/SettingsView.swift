@@ -1,8 +1,9 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @Bindable var locationManager: LocationManager
+    
     @AppStorage("net.thefoxrun.MyQTH.callsign") private var callsign = ""
-    @AppStorage("net.thefoxrun.MyQTH.autoUpdate") private var autoUpdate = false
     @Environment(\.dismiss) private var dismiss
     private let contactURL = URL(string: "mailto:foxrunlabs@icloud.com")!
     
@@ -19,7 +20,7 @@ struct SettingsView: View {
                             .multilineTextAlignment(.trailing)
                     }
                     
-                    Toggle(isOn: $autoUpdate) {
+                    Toggle(isOn: $locationManager.autoUpdate) {
                         VStack(alignment: .leading, spacing: 0) {
                             Text("Auto Update Position")
                             Text("May use more battery")
@@ -27,8 +28,7 @@ struct SettingsView: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                    .sensoryFeedback(.selection, trigger: autoUpdate)
-                    .disabled(true)
+                    .sensoryFeedback(.selection, trigger: locationManager.autoUpdate)
                 }
                 
                 Section("About") {
@@ -58,6 +58,6 @@ struct SettingsView: View {
         Button("Show Settings") { showSettings = true }
     }
     .sheet(isPresented: $showSettings) {
-        SettingsView()
+        SettingsView(locationManager: LocationManager())
     }
 }
