@@ -6,8 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		94E48303303E5D0A00AF1569 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 94A792B42FFB1BAA001386ED /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 94A792BB2FFB1BAA001386ED;
+			remoteInfo = MyQTH;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		94A792BC2FFB1BAA001386ED /* MyQTH.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MyQTH.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		94E482FF303E5D0900AF1569 /* MyQTHTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyQTHTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +27,22 @@
 			path = MyQTH;
 			sourceTree = "<group>";
 		};
+		94E48300303E5D0900AF1569 /* MyQTHTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MyQTHTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		94A792B92FFB1BAA001386ED /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		94E482FC303E5D0900AF1569 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				94A792BE2FFB1BAA001386ED /* MyQTH */,
+				94E48300303E5D0900AF1569 /* MyQTHTests */,
 				94A792BD2FFB1BAA001386ED /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				94A792BC2FFB1BAA001386ED /* MyQTH.app */,
+				94E482FF303E5D0900AF1569 /* MyQTHTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -70,6 +95,29 @@
 			productReference = 94A792BC2FFB1BAA001386ED /* MyQTH.app */;
 			productType = "com.apple.product-type.application";
 		};
+		94E482FE303E5D0900AF1569 /* MyQTHTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 94E48305303E5D0A00AF1569 /* Build configuration list for PBXNativeTarget "MyQTHTests" */;
+			buildPhases = (
+				94E482FB303E5D0900AF1569 /* Sources */,
+				94E482FC303E5D0900AF1569 /* Frameworks */,
+				94E482FD303E5D0900AF1569 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				94E48304303E5D0A00AF1569 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				94E48300303E5D0900AF1569 /* MyQTHTests */,
+			);
+			name = MyQTHTests;
+			packageProductDependencies = (
+			);
+			productName = MyQTHTests;
+			productReference = 94E482FF303E5D0900AF1569 /* MyQTHTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -82,6 +130,10 @@
 				TargetAttributes = {
 					94A792BB2FFB1BAA001386ED = {
 						CreatedOnToolsVersion = 26.6;
+					};
+					94E482FE303E5D0900AF1569 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = 94A792BB2FFB1BAA001386ED;
 					};
 				};
 			};
@@ -100,12 +152,20 @@
 			projectRoot = "";
 			targets = (
 				94A792BB2FFB1BAA001386ED /* MyQTH */,
+				94E482FE303E5D0900AF1569 /* MyQTHTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		94A792BA2FFB1BAA001386ED /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		94E482FD303E5D0900AF1569 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +182,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		94E482FB303E5D0900AF1569 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		94E48304303E5D0A00AF1569 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 94A792BB2FFB1BAA001386ED /* MyQTH */;
+			targetProxy = 94E48303303E5D0A00AF1569 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		94A792C52FFB1BAB001386ED /* Debug */ = {
@@ -247,7 +322,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = WP957Y9Q92;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -295,7 +370,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = WP957Y9Q92;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -337,6 +412,59 @@
 			};
 			name = Release;
 		};
+		94E48306303E5D0A00AF1569 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WP957Y9Q92;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.thefoxrun.MyQTHTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MyQTH.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MyQTH";
+			};
+			name = Debug;
+		};
+		94E48307303E5D0A00AF1569 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WP957Y9Q92;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.thefoxrun.MyQTHTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MyQTH.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MyQTH";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -354,6 +482,15 @@
 			buildConfigurations = (
 				94A792C82FFB1BAB001386ED /* Debug */,
 				94A792C92FFB1BAB001386ED /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		94E48305303E5D0A00AF1569 /* Build configuration list for PBXNativeTarget "MyQTHTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				94E48306303E5D0A00AF1569 /* Debug */,
+				94E48307303E5D0A00AF1569 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -37,9 +37,20 @@ struct DetailsView: View {
         }
     }
     
+    private var isValidUTMLatitude: Bool { (-80.0...84.0).contains(coordinate.latitude) }
+    
     private var utmCoordinate: AttributedString {
         do {
             let utm = try UTMCoordinate(from: coordinate)
+            return AttributedString(utm.formatted(precision: .tenMeter))
+        } catch {
+            return attributedError(error)
+        }
+    }
+    
+    private var upsCoordinate: AttributedString {
+        do {
+            let utm = try UPSCoordinate(from: coordinate)
             return AttributedString(utm.formatted(precision: .tenMeter))
         } catch {
             return attributedError(error)
@@ -65,7 +76,13 @@ struct DetailsView: View {
                 ListRow(coordinate.formatted(notation: .dd, precision: .tenMeter), label: "Decimal Degrees")
                 ListRow(coordinate.formatted(notation: .ddm, precision: .tenMeter), label: "Degrees Decimal Minutes")
                 ListRow(coordinate.formatted(notation: .dms, precision: .tenMeter), label: "Degrees Minutes Seconds")
-                ListRow(utmCoordinate, label: "UTM")
+                
+                if isValidUTMLatitude {
+                    ListRow(utmCoordinate, label: "UTM")
+                } else {
+                    ListRow(upsCoordinate, label: "UPS")
+                }
+                
                 ListRow(mgrsCoordinate, label: "MGRS")
             }
             .navigationTitle("Position Details")

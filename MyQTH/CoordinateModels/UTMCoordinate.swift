@@ -78,7 +78,7 @@ struct UTMCoordinate {
     /// - Note:
     ///   - The supported latitude range is −80° to 84°.
     ///   - Special-case handling is applied for southwest Norway and Svalbard zones.
-    ///   - Easting and northing values are rounded to the nearest meter.
+    ///   - Easting and northing values are truncated to the nearest meter.
     ///   - No input normalization is performed; the result reflects the raw input coordinate.
     ///
     /// - Parameter coordinate: The WGS 84 latitude and longitude coordinate.
@@ -182,7 +182,7 @@ struct UTMCoordinate {
     
     /// Formats the coordinate as "<zone><hemisphere> <easting> <northing>" using the default meter precision.
     ///
-    /// The output uses fixed-width integers, and values are rounded to the nearest meter (as stored).
+    /// The output uses fixed-width integers, and values are truncated to the nearest meter (as stored).
     ///
     /// - Returns: The formatted UTM string.
     func formatted() -> String { FormatStyle().format(self) }
