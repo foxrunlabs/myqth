@@ -1,7 +1,15 @@
 import CoreLocation
 import Foundation
 
-struct UPSCoordinate {
+/// Represents a generic Universal Polar Stereographic (UPS) grid reference on WGS 84.
+///
+/// This type stores a UPS coordinate comprising:
+/// - `zone`: the longitudinal zone letter (A, B, Y, or Z),
+/// - `easting`: the easting value in meters,
+/// - `northing`: the northing value in meters.
+///
+/// Coordinates are stored at meter precision, and the type does not enforce display formatting.
+nonisolated struct UPSCoordinate: Equatable, Sendable {
     typealias Meters = Int
     
     enum Zone: Character, CustomStringConvertible {
@@ -12,6 +20,8 @@ struct UPSCoordinate {
         
         var description: String { String(rawValue) }
     }
+    
+    // MARK: - Properties
     
     let zone: Zone
     let easting: Meters
@@ -50,7 +60,7 @@ struct UPSCoordinate {
     /// Creates a UPS coordinate from its components.
     ///
     /// - Parameters:
-    ///   - zone: UPS zone letter.
+    ///   - zone: UPS zone.
     ///   - easting: The easting value in meters within the zone.
     ///   - northing: The northing value in meters within the zone.
     init(zone: Zone, easting: Meters, northing: Meters) {
@@ -161,7 +171,7 @@ extension UPSCoordinate {
 extension UPSCoordinate {
     /// A `FormatStyle` implementation for `UPSCoordinate` that provides formatting functionality
     /// for converting a UPS coordinate into a string representation with configurable precision.
-    struct FormatStyle: Foundation.FormatStyle {
+    nonisolated struct FormatStyle: Foundation.FormatStyle {
         typealias FormatInput = UPSCoordinate
         typealias FormatOutput = String
         
