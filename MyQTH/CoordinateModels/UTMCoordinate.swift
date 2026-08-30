@@ -10,7 +10,7 @@ import Foundation
 /// - `northing`: the northing value in meters.
 ///
 /// Coordinates are stored at meter precision, and the type does not enforce display formatting.
-struct UTMCoordinate {
+nonisolated struct UTMCoordinate: Equatable, Sendable {
     typealias Zone = Int
     typealias Meters = Int
     
@@ -55,7 +55,7 @@ struct UTMCoordinate {
     init() {
         self.zone = 31
         self.hemisphere = .north
-        self.easting = 166021
+        self.easting = 166_021
         self.northing = 0
     }
     
@@ -163,7 +163,7 @@ struct UTMCoordinate {
             (5.0 - (18.0 * T) + T2 + (72.0 * C) - (58.0 * Self.ep2)) * A5 / 120.0
         ) + Self.falseEasting
         
-        self.easting = Meters(computedEasting)
+        self.easting = Meters(computedEasting.rounded())
         
         // compute northing
         let computedNorthing = Self.k0 * (
@@ -175,7 +175,7 @@ struct UTMCoordinate {
             )
         ) + (latitude < 0.0 ? Self.falseNorthing : 0.0)
         
-        self.northing = Meters(computedNorthing)
+        self.northing = Meters(computedNorthing.rounded())
     }
     
     // MARK: - Methods
@@ -233,7 +233,7 @@ extension UTMCoordinate {
     /// A formatting style for `UTMCoordinate` values that outputs the coordinate as
     /// "<zone><hemisphere> <easting> <northing>" strings with fixed-width integers.
     /// Supports configurable precision (meters, 10 m, 100 m, 1 km) via the `Precision` enumeration.
-    struct FormatStyle: Foundation.FormatStyle {
+    nonisolated struct FormatStyle: Foundation.FormatStyle {
         typealias FormatInput = UTMCoordinate
         typealias FormatOutput = String
         
