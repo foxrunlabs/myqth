@@ -3,7 +3,7 @@ import Foundation
 
 /// Represents a Military Grid Reference System (MGRS) coordinate, used for specifying locations on the Earth's surface
 /// using a combination of grid zones, latitude bands, grid squares, and metric easting/northing values.
-struct MGRSCoordinate {
+nonisolated struct MGRSCoordinate: Equatable, Sendable {
     /// The zone number of the MGRS coordinate, representing one of the 60 longitudinal UTM zones.
     typealias Zone = Int
     
@@ -159,7 +159,7 @@ extension MGRSCoordinate {
 extension MGRSCoordinate {
     /// A `FormatStyle` implementation for `MGRSCoordinate` that provides formatting functionality
     /// for converting an MGRS coordinate into a string representation with configurable precision.
-    struct FormatStyle: Foundation.FormatStyle {
+    nonisolated struct FormatStyle: Foundation.FormatStyle {
         typealias FormatInput = MGRSCoordinate
         typealias FormatOutput = String
         
