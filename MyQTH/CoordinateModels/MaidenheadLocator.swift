@@ -3,7 +3,7 @@ import Foundation
 
 /// Represents a Maidenhead grid locator with canonical mixed-case representation
 /// (e.g., "FN31pr"). Supports construction from strings or geographic coordinates.
-struct MaidenheadLocator: CustomStringConvertible, Equatable, Hashable {
+nonisolated struct MaidenheadLocator: CustomStringConvertible, Equatable, Hashable, Sendable {
     let locator: String
     
     /// ASCII value for the uppercase letter A.
@@ -18,8 +18,8 @@ struct MaidenheadLocator: CustomStringConvertible, Equatable, Hashable {
     // MARK: - Computed Properties
     
     var field: String { String(locator.prefix(2)) }
-    var square: String { String(locator.suffix(4).prefix(2)) }
-    var subsquare: String { String(locator.suffix(2)) }
+    var square: String { String(locator.dropFirst(2).prefix(2)) }
+    var subsquare: String { locator.count == 6 ? String(locator.suffix(2)) : "" }
     
     var description: String { locator }
     
@@ -94,7 +94,7 @@ struct MaidenheadLocator: CustomStringConvertible, Equatable, Hashable {
             self.locator = trimmedLocator
         } else {
             let prefix = trimmedLocator.dropLast(4)
-            let suffix = trimmedLocator.suffix(2).lowercased()
+            let suffix = trimmedLocator.suffix(4).lowercased()
             self.locator = prefix + suffix
         }
     }
@@ -223,7 +223,7 @@ extension MaidenheadLocator {
 extension MaidenheadLocator {
     /// A formatting style for Maidenhead locators that outputs a string truncated to the desired precision
     /// (field, square, or subsquare). Operates on canonical mixed-case locators.
-    struct FormatStyle: Foundation.FormatStyle {
+    nonisolated struct FormatStyle: Foundation.FormatStyle {
         typealias FormatInput = MaidenheadLocator
         typealias FormatOutput = String
         
