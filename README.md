@@ -4,7 +4,7 @@ MyQTH is a native iOS location utility for amateur radio operators that displays
 
 Built with SwiftUI, MapKit, and Core Location, MyQTH presents the current location on an interactive map while providing quick access to Maidenhead, latitude/longitude, UTM/UPS, and MGRS coordinates.
 
-# Screenshots
+## Screenshots
 
 <p align="center">
   <img src="doc/images/main_screen.png" width="40%" />
