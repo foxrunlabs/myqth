@@ -3,7 +3,7 @@ import MapKit
 import SwiftUI
 
 struct ContentView: View {
-    private enum ZoomLevel: String, CaseIterable, CustomStringConvertible, Identifiable {
+    private enum ZoomLevel: String, CaseIterable, Identifiable {
         case field
         case square
         case subsquare
@@ -18,7 +18,7 @@ struct ContentView: View {
         
         var id: Self { self }
 
-        var description: String {
+        var displayName: String {
             switch self {
             case .field: "Field"
             case .square: "Square"
@@ -35,8 +35,8 @@ struct ContentView: View {
     @State private var showSettings = false
     @State private var showDetails = false
     
-    @AppStorage("net.thefoxrun.MyQTH.callsign") private var callsign = ""
-    @AppStorage("net.thefoxrun.MyQTH.zoom") private var zoom = ZoomLevel.subsquare
+    @AppStorage("net.thefoxrun.labs.MyQTH.callsign") private var callsign = ""
+    @AppStorage("net.thefoxrun.labs.MyQTH.zoom") private var zoom = ZoomLevel.subsquare
     
     @State private var cameraPosition: MapCameraPosition = .region(
         .init(center: CLLocationCoordinate2D(), span: .subsquare)
@@ -82,7 +82,7 @@ struct ContentView: View {
                     Menu("Zoom", systemImage: "square.arrowtriangle.4.outward") {
                         Picker("Zoom", selection: $zoom) {
                             ForEach(ZoomLevel.allCases) { zoomLevel in
-                                Text(String(describing: zoomLevel))
+                                Text(zoomLevel.displayName)
                                     .tag(zoomLevel)
                             }
                         }

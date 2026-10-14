@@ -40,7 +40,7 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     /// Position update mode setting.
     var autoUpdate = false {
         didSet {
-            UserDefaults.standard.set(autoUpdate, forKey: "net.thefoxrun.MyQTH.autoUpdate")
+            UserDefaults.standard.set(autoUpdate, forKey: "net.thefoxrun.labs.MyQTH.autoUpdate")
             configureUpdates()
         }
     }
@@ -61,7 +61,7 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     /// current authorization status.
     override init() {
         super.init()
-        autoUpdate = UserDefaults.standard.bool(forKey: "net.thefoxrun.MyQTH.autoUpdate")
+        autoUpdate = UserDefaults.standard.bool(forKey: "net.thefoxrun.labs.MyQTH.autoUpdate")
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.distanceFilter = 10

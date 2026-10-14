@@ -3,9 +3,9 @@ import SwiftUI
 struct SettingsView: View {
     @Bindable var locationManager: LocationManager
     
-    @AppStorage("net.thefoxrun.MyQTH.callsign") private var callsign = ""
+    @AppStorage("net.thefoxrun.labs.MyQTH.callsign") private var callsign = ""
     @Environment(\.dismiss) private var dismiss
-    private let contactURL = URL(string: "mailto:foxrunlabs@icloud.com")!
+    private let contactURL = URL(string: "mailto:labs@thefoxrun.net")!
     
     // MARK: - Body
     
