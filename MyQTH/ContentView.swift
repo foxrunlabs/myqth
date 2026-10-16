@@ -56,10 +56,7 @@ struct ContentView: View {
             locationManager.authorizationStatus == .restricted
     }
     
-    private var isDetailDisabled: Bool {
-        guard let location else { return true }
-        return location.horizontalAccuracy < 0
-    }
+    private var isDetailDisabled: Bool { location == nil }
 
     // MARK: - Body
     
@@ -143,7 +140,7 @@ struct ContentView: View {
             }
         }
         .onChange(of: locationManager.error != nil) { _, hasError in showAlert = hasError }
-        .onChange(of: location) { oldLocation, _ in
+        .onChange(of: location, initial: true) { oldLocation, _ in
             if oldLocation == nil || !locationManager.autoUpdate {
                 updateCameraPosition(span: zoom.span)
             }

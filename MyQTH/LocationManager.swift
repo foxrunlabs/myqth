@@ -4,11 +4,20 @@ import Observation
 
 /// Manages one-shot access to the user’s current location with SwiftUI-friendly observation.
 ///
-/// `LocationManager` wraps `CLLocationManager` to request authorization and a single location fix on demand. It exposes the
-/// latest `CLLocation`, the current authorization status, and a user-presentable `LocationError` for display in the UI.
+/// `LocationManager` wraps `CLLocationManager` to request authorization and a single location fix on demand. It
+/// exposes the latest `CLLocation`, the current authorization status, and a user-presentable `LocationError` for display
+/// in the UI.
 @MainActor
 @Observable
 final class LocationManager: NSObject, CLLocationManagerDelegate {
+    private enum DefaultsKey {
+        static let autoUpdate = "net.thefoxrun.labs.MyQTH.autoUpdate"
+        static let latitude = "net.thefoxrun.labs.MyQTH.lastKnownLatitude"
+        static let longitude = "net.thefoxrun.labs.MyQTH.lastKnownLongitude"
+        static let horizontalAccuracy = "net.thefoxrun.labs.MyQTH.lastKnownHorizontalAccuracy"
+        static let timestamp = "net.thefoxrun.labs.MyQTH.lastKnownLocationTimestamp"
+    }
+    
     /// A user-presentable error describing why location could not be obtained.
     ///
     /// - permissionDenied: The app lacks permission to access location.
@@ -40,7 +49,7 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     /// Position update mode setting.
     var autoUpdate = false {
         didSet {
-            UserDefaults.standard.set(autoUpdate, forKey: "net.thefoxrun.labs.MyQTH.autoUpdate")
+            UserDefaults.standard.set(autoUpdate, forKey: DefaultsKey.autoUpdate)
             configureUpdates()
         }
     }
@@ -61,10 +70,14 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     /// current authorization status.
     override init() {
         super.init()
-        autoUpdate = UserDefaults.standard.bool(forKey: "net.thefoxrun.labs.MyQTH.autoUpdate")
+        
+        autoUpdate = UserDefaults.standard.bool(forKey: DefaultsKey.autoUpdate)
+        location = loadLastKnownLocation()
+        
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.distanceFilter = 10
+        
         authorizationStatus = manager.authorizationStatus
     }
         
@@ -115,15 +128,12 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
                 requestLocation()
             }
         case .notDetermined:
-            location = nil
             manager.requestWhenInUseAuthorization()
         case .restricted, .denied:
             manager.stopUpdatingLocation()
-            location = nil
             error = .permissionDenied
         @unknown default:
             manager.stopUpdatingLocation()
-            location = nil
             error = .unknown
         }
     }
@@ -132,10 +142,58 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         location = locations.last
         error = nil
+        
+        if let location { save(location) }
     }
     
     /// Receives location errors and wraps them in `LocationError.underlying`.
     func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
         self.error = .underlying(error)
+    }
+    
+    /// Saves the last known location to standard user defaults.
+    ///
+    /// Stores the latitude, longitude, horizontal accuracy, and timestamp for restoration by `loadLastKnownLocation()`,
+    /// replacing any previously saved values.
+    ///
+    /// - Parameter location: The location whose coordinates, horizontal accuracy, and timestamp to save.
+    private func save(_ location: CLLocation) {
+        UserDefaults.standard.set(location.coordinate.latitude, forKey: DefaultsKey.latitude)
+        UserDefaults.standard.set(location.coordinate.longitude, forKey: DefaultsKey.longitude)
+        UserDefaults.standard.set(location.horizontalAccuracy, forKey: DefaultsKey.horizontalAccuracy)
+        UserDefaults.standard.set(location.timestamp, forKey: DefaultsKey.timestamp)
+    }
+    
+    /// Restores the last known location from standard user defaults.
+    ///
+    /// Reads the saved latitude, longitude, horizontal accuracy, and timestamp. If the timestamp is missing or is not a `Date`,
+    /// uses `Date.distantPast`. The restored location has an altitude of zero and a vertical accuracy of `-1`, indicating
+    /// that altitude information is invalid.
+    ///
+    /// - Returns: The restored location, or `nil` if the latitude, longitude, or horizontal accuracy entry is missing.
+    private func loadLastKnownLocation() -> CLLocation? {
+        guard
+            UserDefaults.standard.object(forKey: DefaultsKey.latitude) != nil,
+            UserDefaults.standard.object(forKey: DefaultsKey.longitude) != nil,
+            UserDefaults.standard.object(forKey: DefaultsKey.horizontalAccuracy) != nil
+        else {
+            return nil
+        }
+        
+        let latitude = UserDefaults.standard.double(forKey: DefaultsKey.latitude)
+        let longitude = UserDefaults.standard.double(forKey: DefaultsKey.longitude)
+        let horizontalAccuracy = UserDefaults.standard.double(forKey: DefaultsKey.horizontalAccuracy)
+        let timestamp = UserDefaults.standard.object(forKey: DefaultsKey.timestamp) as? Date ?? .distantPast
+        
+        return CLLocation(
+            coordinate: .init(
+                latitude: latitude,
+                longitude: longitude
+            ),
+            altitude: 0,
+            horizontalAccuracy: horizontalAccuracy,
+            verticalAccuracy: -1,
+            timestamp: timestamp
+        )
     }
 }

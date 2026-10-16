@@ -15,6 +15,10 @@ struct DetailsView: View {
         return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
     
+    private var timestamp: String {
+        location.timestamp.formatted(date: .abbreviated, time: .shortened)
+    }
+    
     private var horizontalAccuracy: String {
         let accuracy = Measurement(
             value: location.horizontalAccuracy,
@@ -86,6 +90,7 @@ struct DetailsView: View {
                 ListRow(mgrsCoordinate, label: "MGRS")
             }
             .navigationTitle("Position Details")
+            .navigationSubtitle(timestamp)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
