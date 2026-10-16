@@ -4,6 +4,7 @@ struct SettingsView: View {
     @Bindable var locationManager: LocationManager
     
     @AppStorage("net.thefoxrun.labs.MyQTH.callsign") private var callsign = ""
+    @AppStorage("net.thefoxrun.labs.MyQTH.displayGrid") private var displayGrid = true
     @Environment(\.dismiss) private var dismiss
     private let contactURL = URL(string: "mailto:labs@thefoxrun.net")!
     
@@ -19,6 +20,11 @@ struct SettingsView: View {
                             .textInputAutocapitalization(.characters)
                             .multilineTextAlignment(.trailing)
                     }
+                    
+                    Toggle(isOn: $displayGrid) {
+                        Text("Maidenhead Locator Grid")
+                    }
+                    .sensoryFeedback(.selection, trigger: displayGrid)
                     
                     Toggle(isOn: $locationManager.autoUpdate) {
                         VStack(alignment: .leading, spacing: 0) {

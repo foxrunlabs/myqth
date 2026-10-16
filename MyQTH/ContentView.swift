@@ -30,17 +30,22 @@ struct ContentView: View {
     // MARK: - Properties
 
     @State private var locationManager = LocationManager()
-    
+
     @State private var showAlert = false
     @State private var showSettings = false
     @State private var showDetails = false
     
     @AppStorage("net.thefoxrun.labs.MyQTH.callsign") private var callsign = ""
+    @AppStorage("net.thefoxrun.labs.MyQTH.displayGrid") private var displayGrid = true
     @AppStorage("net.thefoxrun.labs.MyQTH.zoom") private var zoom = ZoomLevel.subsquare
     
     @State private var cameraPosition: MapCameraPosition = .region(
         .init(center: CLLocationCoordinate2D(), span: .subsquare)
     )
+    
+    @State private var gridCells = MaidenheadGrid(
+        region: .init(center: CLLocationCoordinate2D(), span: .subsquare)
+    ).cells
 
     // MARK: - Computed Properties
     
@@ -63,11 +68,22 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             Map(position: $cameraPosition, interactionModes: [.pan, .zoom]) {
+                if displayGrid {
+                    MaidenheadGridContent(cells: gridCells)
+                }
+
                 Marker(
                     callsign,
                     systemImage: "antenna.radiowaves.left.and.right",
                     coordinate: location?.coordinate ?? CLLocationCoordinate2D()
                 )
+            }
+            .onMapCameraChange(frequency: .continuous) { context in
+                let cells = MaidenheadGrid(region: context.region).cells
+                
+                if cells.map(\.id) != gridCells.map(\.id) {
+                    gridCells = cells
+                }
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
