@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Support · MyQTH</title>
+    <meta name="description"
+        content="MyQTH for iOS — support, troubleshooting, privacy and license information from Fox Run Labs.">
+    <meta name="theme-color" content="#12282d">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+</head>
+
+<body><a class="skip" href="#main">Skip to content</a>
+    <header><a class="brand" href="https://labs.thefoxrun.net/" aria-label="Fox Run Labs home"><svg viewBox="0 0 40 40"
+                aria-hidden="true">
+                <path d="M5 5l15 8L35 5l-4 23-11 8L9 28z" />
+                <path class="foxline" d="M9 17l11 11 11-11M20 28v8" />
+            </svg><span>FOX RUN <b>LABS</b></span></a>
+        <nav aria-label="Main navigation"><a href="./#help">FAQ</a><a href="privacy.html">Privacy</a><a
+                href="./#contact">Contact</a></nav>
+    </header>
+    <main id="main">
+        <section class="hero">
+            <div>
+                <p class="eyebrow">MYQTH / SUPPORT</p>
+                <h1>A little help.<br>A <em>clear position.</em></h1>
+                <p class="intro">Support for MyQTH, your iOS companion for geographic coordinates and Maidenhead grid
+                    locators.</p><a class="button" href="#contact">Get in touch <span aria-hidden="true">↗</span></a><a
+                    class="textlink" href="#help">Find an answer ↓</a>
+            </div>
+            <div class="app-screenshots" aria-label="MyQTH app screenshots"><img src="images/main_screen.png" width="3000"
+                    height="6000"
+                    alt="MyQTH main screen showing an Apple Maps view, callsign marker, and Maidenhead grid locator"><img
+                    src="images/position_details.png" width="3000" height="6000"
+                    alt="MyQTH position details screen showing geographic coordinate formats"></div>
+        </section>
+        <section class="help" id="help">
+            <div class="section-heading">
+                <p class="eyebrow">01 / QUICK ANSWERS</p>
+                <h2>Back on the map.</h2>
+                <p>Start here for common questions and a few simple things to try.</p>
+            </div>
+            <div class="questions">
+                <details open>
+                    <summary>My position is missing or isn’t updating.</summary>
+                    <p>In iOS Settings, open Privacy &amp; Security → Location Services. Make sure Location Services is
+                        on, then select MyQTH and allow access while using the app. Open MyQTH again and check whether
+                        automatic position updates are enabled in the app’s settings.</p>
+                    <p>MyQTH can restore a saved position when reopened. Check the location timestamp before treating it
+                        as your current position.</p>
+                </details>
+                <details>
+                    <summary>My coordinates or grid locator look inaccurate.</summary>
+                    <p>Check MyQTH’s location permission in iOS Settings and enable Precise Location if available. Try
+                        again outdoors with a clear view of the sky, and allow time for a new location reading. Compare
+                        the horizontal accuracy and timestamp shown by the app; a saved or approximate position may
+                        produce a different grid locator.</p>
+                </details>
+                <details>
+                    <summary>The map is blank or slow to load.</summary>
+                    <p>MyQTH uses Apple Maps. Check your internet connection, then close and reopen the app. Map content
+                        may need a connection even though coordinate calculations take place on your device.</p>
+                </details>
+                <details>
+                    <summary>What information does MyQTH store?</summary>
+                    <p>Your optional callsign, preferences, and last known position are stored on your device. MyQTH
+                        does not maintain a location history or send your location to the developer. Apple Maps may
+                        communicate with Apple to load map content. Read the <a href="privacy.html">full privacy
+                            policy</a> for details.</p>
+                </details>
+                <details>
+                    <summary>How do I remove my saved information?</summary>
+                    <p>Clear your callsign in the app’s settings. Revoking location permission stops new location access
+                        but does not erase the saved position. Deleting the app removes its local app data; offloading
+                        may retain it. Device backups may also contain local app data.</p>
+                </details>
+                <details>
+                    <summary>How do I report a bug or suggest a feature?</summary>
+                    <p>Email <a href="mailto:labs@thefoxrun.net?subject=MyQTH%20feedback">labs@thefoxrun.net</a>. For a
+                        bug, include your MyQTH version, iOS version, device model, what happened, and what you
+                        expected. Suggestions and general questions are welcome too.</p>
+                </details>
+            </div>
+        </section>
+        <section class="contact" id="contact">
+            <p class="eyebrow">02 / DIRECT SUPPORT</p>
+            <h2>Still need a hand?</h2>
+            <p>Contact Ryan Clarke at Fox Run Labs for MyQTH support, feedback, feature requests, or privacy questions.
+            </p><a class="email" href="mailto:labs@thefoxrun.net?subject=MyQTH%20support">labs@thefoxrun.net <span
+                    aria-hidden="true">↗</span></a>
+            <p class="small">Helpful details: app version, iOS version, device model, and steps to reproduce the issue.
+                Screenshots can help—please remove coordinates, callsigns, or other personal information you don’t want
+                to share.</p>
+        </section>
+        <section class="resources">
+            <div>
+                <h3>Your privacy, explained.</h3>
+                <p>Understand location access, local storage, and Apple Maps.</p><a href="privacy.html">Read the privacy
+                    policy ↗</a>
+            </div>
+            <div>
+                <h3>License &amp; permissions.</h3>
+                <p>MyQTH’s supplied license includes the MIT permission and warranty terms.</p><a
+                    href="license.html">Read the license ↗</a>
+            </div>
+        </section>
+    </main>
+    <footer><span>© 2026 Ryan Clarke · Fox Run Labs</span>
+        <div><a href="privacy.html">Privacy policy</a><a href="license.html">License</a></div>
+    </footer>
+</body>
+
+</html>
