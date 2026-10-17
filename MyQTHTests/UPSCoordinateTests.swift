@@ -132,18 +132,18 @@ import Testing
             let ups = UPSCoordinate(zone: .z, easting: 2_392_768, northing: 1_607_232)
             
             #expect(ups.formatted() == "Z 2392768 1607232")
-            #expect(ups.formatted(precision: .tenMeter) == "Z 239276 160723")
-            #expect(ups.formatted(precision: .hundredMeter) == "Z 23927 16072")
-            #expect(ups.formatted(precision: .kilometer) == "Z 2392 1607")
+            #expect(ups.formatted(precision: .tenMeter) == "Z 2392760 1607230")
+            #expect(ups.formatted(precision: .hundredMeter) == "Z 2392700 1607200")
+            #expect(ups.formatted(precision: .kilometer) == "Z 2392000 1607000")
         }
         
         @Test("Leading Zero Preservation") func leadingZeroPreservation() {
             let ups = UPSCoordinate(zone: .y, easting: 123_456, northing: 987_654)
             
             #expect(ups.formatted() == "Y 0123456 0987654")
-            #expect(ups.formatted(precision: .tenMeter) == "Y 012345 098765")
-            #expect(ups.formatted(precision: .hundredMeter) == "Y 01234 09876")
-            #expect(ups.formatted(precision: .kilometer) == "Y 0123 0987")
+            #expect(ups.formatted(precision: .tenMeter) == "Y 123450 987650")
+            #expect(ups.formatted(precision: .hundredMeter) == "Y 123400 987600")
+            #expect(ups.formatted(precision: .kilometer) == "Y 123000 987000")
         }
     }
 }

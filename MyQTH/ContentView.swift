@@ -53,7 +53,13 @@ struct ContentView: View {
     
     private var maidenheadLocator: MaidenheadLocator? {
         guard let location else { return nil }
-        return try? MaidenheadLocator(from: location.coordinate)
+        
+        let places = CLLocationCoordinate2D.FormatStyle.Precision.tenMeter.ddMinimumPlaces
+        let latitude = location.coordinate.latitude.rounded(places: places)
+        let longitude = location.coordinate.longitude.rounded(places: places)
+        let roundedCoordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        
+        return try? MaidenheadLocator(from: roundedCoordinate)
     }
 
     private var isUpdateDisabled: Bool {

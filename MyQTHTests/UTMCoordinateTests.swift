@@ -208,9 +208,9 @@ import Testing
             )
             
             #expect(utm.formatted() == "43N 247679 4543093")
-            #expect(utm.formatted(precision: .tenMeter) == "43N 24767 454309")
-            #expect(utm.formatted(precision: .hundredMeter) == "43N 2476 45430")
-            #expect(utm.formatted(precision: .kilometer) == "43N 247 4543")
+            #expect(utm.formatted(precision: .tenMeter) == "43N 247670 4543090")
+            #expect(utm.formatted(precision: .hundredMeter) == "43N 247600 4543000")
+            #expect(utm.formatted(precision: .kilometer) == "43N 247000 4543000")
         }
         
         @Test("Leading Zero Preservation") func leadingZeroPreservation() {
@@ -222,9 +222,9 @@ import Testing
             )
             
             #expect(utm.formatted() == "43N 500000 0552664")
-            #expect(utm.formatted(precision: .tenMeter) == "43N 50000 055266")
-            #expect(utm.formatted(precision: .hundredMeter) == "43N 5000 05526")
-            #expect(utm.formatted(precision: .kilometer) == "43N 500 0552")
+            #expect(utm.formatted(precision: .tenMeter) == "43N 500000 552660")
+            #expect(utm.formatted(precision: .hundredMeter) == "43N 500000 552600")
+            #expect(utm.formatted(precision: .kilometer) == "43N 500000 552000")
         }
     }
 }
