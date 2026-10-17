@@ -4,11 +4,21 @@ import SwiftUI
 import UIKit
 
 struct ContentView: View {
+    /// A map zoom preset corresponding to a Maidenhead grid subdivision.
+    ///
+    /// String raw values support persisting the selected preset with `AppStorage`. All cases are available in the zoom picker,
+    /// where each case identifies itself.
     private enum ZoomLevel: String, CaseIterable, Identifiable {
+        /// The zoom preset for viewing Maidenhead fields.
         case field
+
+        /// The zoom preset for viewing Maidenhead squares.
         case square
+
+        /// The zoom preset for viewing Maidenhead subsquares.
         case subsquare
 
+        /// The coordinate span used when centering the map at this zoom level.
         var span: MKCoordinateSpan {
             switch self {
             case .field: .field
@@ -17,8 +27,10 @@ struct ContentView: View {
             }
         }
         
+        /// The case itself, used as its stable identifier in the zoom picker.
         var id: Self { self }
 
+        /// The user-facing name displayed in the zoom picker.
         var displayName: String {
             switch self {
             case .field: "Field"
@@ -32,15 +44,11 @@ struct ContentView: View {
     
     @Environment(\.openURL) private var openURL
 
-    @State private var locationManager = LocationManager()
-
-    @State private var showAlert = false
-    @State private var showSettings = false
-    @State private var showDetails = false
-    
     @AppStorage("net.thefoxrun.labs.MyQTH.callsign") private var callsign = ""
     @AppStorage("net.thefoxrun.labs.MyQTH.displayGrid") private var displayGrid = true
     @AppStorage("net.thefoxrun.labs.MyQTH.zoom") private var zoom = ZoomLevel.subsquare
+    
+    @State private var locationManager = LocationManager()
     
     @State private var cameraPosition: MapCameraPosition = .region(
         .init(center: CLLocationCoordinate2D(), span: .subsquare)
@@ -49,19 +57,27 @@ struct ContentView: View {
     @State private var gridCells = MaidenheadGrid(
         region: .init(center: CLLocationCoordinate2D(), span: .subsquare)
     ).cells
+    
+    @State private var showAlert = false
+    @State private var showSettings = false
+    @State private var showDetails = false
 
     // MARK: - Computed Properties
     
     private var location: CLLocation? { locationManager.location }
     
-    private var maidenheadLocator: MaidenheadLocator? {
+    private var roundedCoordinate: CLLocationCoordinate2D? {
         guard let location else { return nil }
         
         let places = CLLocationCoordinate2D.FormatStyle.Precision.tenMeter.ddMinimumPlaces
         let latitude = location.coordinate.latitude.rounded(places: places)
         let longitude = location.coordinate.longitude.rounded(places: places)
-        let roundedCoordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
         
+        return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    }
+    
+    private var maidenheadLocator: MaidenheadLocator? {
+        guard let roundedCoordinate else { return nil }
         return try? MaidenheadLocator(from: roundedCoordinate)
     }
 
@@ -81,20 +97,17 @@ struct ContentView: View {
                     MaidenheadGridContent(cells: gridCells)
                 }
 
-                if let location {
+                if let roundedCoordinate {
                     Marker(
                         callsign,
                         systemImage: "antenna.radiowaves.left.and.right",
-                        coordinate: location.coordinate
+                        coordinate: roundedCoordinate
                     )
                 }
             }
             .onMapCameraChange(frequency: .continuous) { context in
                 let cells = MaidenheadGrid(region: context.region).cells
-                
-                if cells.map(\.id) != gridCells.map(\.id) {
-                    gridCells = cells
-                }
+                if cells.map(\.id) != gridCells.map(\.id) { gridCells = cells }
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -167,9 +180,7 @@ struct ContentView: View {
                     }
                 }
 
-                Button("OK", role: .cancel) {
-                    locationManager.error = nil
-                }
+                Button("OK", role: .cancel) { locationManager.error = nil }
             } message: {
                 Text(
                     locationManager.error?.localizedDescription
@@ -194,9 +205,9 @@ struct ContentView: View {
     // MARK: - Methods
     
     private func updateCameraPosition(span: MKCoordinateSpan) {
-        guard let location else { return }
+        guard let roundedCoordinate else { return }
         withAnimation(.easeInOut) {
-            cameraPosition = .region(.init(center: location.coordinate, span: span))
+            cameraPosition = .region(.init(center: roundedCoordinate, span: span))
         }
     }
 }
