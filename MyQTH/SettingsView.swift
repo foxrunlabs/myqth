@@ -40,7 +40,7 @@ struct SettingsView: View {
                 }
                 
                 Section("Support and Legal") {
-                    Text("Version " + Bundle.main.versionString)
+                    Label("Version \(Bundle.main.versionString)", systemImage: "tag")
                     Link(destination: contactURL) { Label("Contact", systemImage: "envelope") }
                     Link(destination: supportURL) {
                         Label("Support", systemImage: "questionmark.circle")
