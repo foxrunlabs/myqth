@@ -7,9 +7,9 @@ Built with SwiftUI, MapKit, and Core Location, MyQTH presents the current locati
 ## Screenshots
 
 <p align="center">
-  <img src="docs/images/main_screen.png" width="40%" />
+  <img src="docs/images/main-screen.png" width="40%" />
   &nbsp;
-  <img src="docs/images/position_details.png" width="40%" />
+  <img src="docs/images/position-details.png" width="40%" />
 </p>
 
 ## Features
