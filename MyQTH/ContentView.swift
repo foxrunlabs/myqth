@@ -5,9 +5,6 @@ import UIKit
 
 struct ContentView: View {
     /// A map zoom preset corresponding to a Maidenhead grid subdivision.
-    ///
-    /// String raw values support persisting the selected preset with `AppStorage`. All cases are available in the zoom picker,
-    /// where each case identifies itself.
     private enum ZoomLevel: String, CaseIterable, Identifiable {
         /// The zoom preset for viewing Maidenhead fields.
         case field
@@ -134,11 +131,7 @@ struct ContentView: View {
 
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        if locationManager.autoUpdate {
-                            updateCameraPosition(span: zoom.span)
-                        } else {
-                            locationManager.requestLocation()
-                        }
+                        locationManager.requestLocation()
                     } label: {
                         Image(systemName: "location")
                     }
@@ -195,10 +188,8 @@ struct ContentView: View {
         .onChange(of: locationManager.error != nil, initial: true) { _, hasError in
             showAlert = hasError
         }
-        .onChange(of: location, initial: true) { oldLocation, _ in
-            if oldLocation == nil || !locationManager.autoUpdate {
-                updateCameraPosition(span: zoom.span)
-            }
+        .onChange(of: location, initial: true) { _, _ in
+            updateCameraPosition(span: zoom.span)
         }
     }
 

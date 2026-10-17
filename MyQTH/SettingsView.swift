@@ -27,16 +27,6 @@ struct SettingsView: View {
                         Text("Maidenhead Locator Grid")
                     }
                     .sensoryFeedback(.selection, trigger: displayGrid)
-                    
-                    Toggle(isOn: $locationManager.autoUpdate) {
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text("Auto Update Position")
-                            Text("May use more battery")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .sensoryFeedback(.selection, trigger: locationManager.autoUpdate)
                 }
                 
                 Section("Support and Legal") {

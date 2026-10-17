@@ -10,24 +10,18 @@ import Observation
 @MainActor
 @Observable
 final class LocationManager: NSObject, CLLocationManagerDelegate {
-    private enum DefaultsKey {
-        static let autoUpdate = "net.thefoxrun.labs.MyQTH.autoUpdate"
-        static let latitude = "net.thefoxrun.labs.MyQTH.lastKnownLatitude"
-        static let longitude = "net.thefoxrun.labs.MyQTH.lastKnownLongitude"
-        static let horizontalAccuracy = "net.thefoxrun.labs.MyQTH.lastKnownHorizontalAccuracy"
-        static let timestamp = "net.thefoxrun.labs.MyQTH.lastKnownLocationTimestamp"
-    }
-    
     /// A user-presentable error describing why location could not be obtained.
-    ///
-    /// - permissionDenied: Location services are denied.
-    /// - permissionRestricted: Location services are restricted.
-    /// - underlying: An underlying Core Location or system error occurred.
-    /// - unknown: An unspecified error occurred.
     enum LocationError: LocalizedError {
+        /// Location services are denied.
         case permissionDenied
+        
+        /// Location services are restricted.
         case permissionRestricted
+        
+        /// An underlying Core Location or system error occurred.
         case underlying(Error)
+        
+        /// An unspecified error occurred.
         case unknown
         
         var errorDescription: String? {
@@ -44,94 +38,67 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
         }
     }
     
+    /// UserDefaults keys for AppStorage.
+    private enum DefaultsKey {
+        static let latitude = "net.thefoxrun.labs.MyQTH.lastKnownLatitude"
+        static let longitude = "net.thefoxrun.labs.MyQTH.lastKnownLongitude"
+        static let horizontalAccuracy = "net.thefoxrun.labs.MyQTH.lastKnownHorizontalAccuracy"
+        static let timestamp = "net.thefoxrun.labs.MyQTH.lastKnownLocationTimestamp"
+    }
+    
     /// The underlying Core Location manager.
     private let manager = CLLocationManager()
     
     /// The authorization status.
     private(set) var authorizationStatus: CLAuthorizationStatus = .notDetermined
     
-    /// Position update mode setting.
-    var autoUpdate = false {
-        didSet {
-            UserDefaults.standard.set(autoUpdate, forKey: DefaultsKey.autoUpdate)
-            configureUpdates()
-        }
-    }
-    
-    /// The most recent error, suitable for presenting to the user. Set to `nil` when a location is successfully obtained or when
-    /// authorization allows requesting location.
+    /// The most recent error, suitable for presenting to the user. Set to `nil` when a location is successfully obtained or
+    /// when authorization allows requesting location.
     var error: LocationError?
     
-    /// The most recently reported location from Core Location.
-    ///
-    /// Reset to `nil` when authorization is not determined, restricted, or denied. Updated to the last value received in
-    /// `didUpdateLocations` when available.
+    /// The most recently reported location from Core Location. Reset to `nil` when authorization is not determined,
+    /// restricted, or denied. Updated to the last value received in `didUpdateLocations` when available.
     private(set) var location: CLLocation?
     
     // MARK: - Initializer
     
-    /// Initializes the manager, assigns the delegate, sets desired accuracy, and captures the
-    /// current authorization status.
+    /// Initializes the manager, recalls the last known location, and captures the current authorization status.
     override init() {
         super.init()
-        
-        autoUpdate = UserDefaults.standard.bool(forKey: DefaultsKey.autoUpdate)
-        location = loadLastKnownLocation()
         
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.distanceFilter = 10
         
+        location = loadLastKnownLocation()
         authorizationStatus = manager.authorizationStatus
     }
-        
+    
     // MARK: - Methods
     
     /// Requests a single location update.
-    ///
-    /// This method calls `CLLocationManager.requestLocation()`. The result is delivered via
-    /// `locationManager(_:didUpdateLocations:)` or `locationManager(_:didFailWithError:)`.
     func requestLocation() {
-        guard !autoUpdate else { return }
         manager.requestLocation()
-    }
-    
-    /// Starts or stops location updates based on `autoUpdate` value and `authorizationStatus`.
-    private func configureUpdates() {
-        guard
-            authorizationStatus == .authorizedAlways || authorizationStatus == .authorizedWhenInUse
-        else {
-            return
-        }
-        
-        if autoUpdate {
-            manager.startUpdatingLocation()
-        } else {
-            manager.stopUpdatingLocation()
-        }
     }
     
     // MARK: - CLLocationManagerDelegate Methods
     
     /// Handles changes to authorization.
     ///
-    /// - Authorized (.authorizedAlways / .authorizedWhenInUse): Clears errors and requests either a one-shot location update or
-    /// configures continuous location updates.
-    /// - Not determined: Clears location and prompts for when-in-use authorization.
-    /// - Restricted/Denied: Clears location and surfaces a `.permissionDenied` error.
+    /// - Authorized: Clears errors and requests a one-shot location update.
+    /// - Not determined: Clears errors and prompts for when-in-use authorization.
+    /// - Restricted: Stops updating location and surfaces a `.permissionRestricted` error.
+    /// - Denied: Stops updating location and surfaces a `.permissionDenied` error.
     /// - Unknown: Surfaces an `.unknown` error.
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         authorizationStatus = manager.authorizationStatus
-        error = nil
         
         switch manager.authorizationStatus {
         case .authorizedAlways, .authorizedWhenInUse:
-            if autoUpdate {
-                configureUpdates()
-            } else {
-                requestLocation()
-            }
+            error = nil
+            manager.requestLocation()
         case .notDetermined:
+            error = nil
             manager.requestWhenInUseAuthorization()
         case .restricted:
             manager.stopUpdatingLocation()
@@ -145,7 +112,7 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
         }
     }
     
-    /// Receives successful location updates and clears any previous error.
+    /// Receives successful location updates, clears any previous error, and saves the last valid location.
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         location = locations.last
         error = nil
@@ -174,7 +141,7 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     /// Restores the last known location from standard user defaults.
     ///
     /// Reads the saved latitude, longitude, horizontal accuracy, and timestamp. If the timestamp is missing or is not a `Date`,
-    /// uses `Date.distantPast`. The restored location has an altitude of zero and a vertical accuracy of `-1`, indicating
+    /// uses `Date.distantPast`. The restored location has an altitude of `0` and a vertical accuracy of `-1`, indicating
     /// that altitude information is invalid.
     ///
     /// - Returns: The restored location, or `nil` if the latitude, longitude, or horizontal accuracy entry is missing.
