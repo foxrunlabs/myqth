@@ -20,22 +20,26 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     
     /// A user-presentable error describing why location could not be obtained.
     ///
-    /// - permissionDenied: The app lacks permission to access location.
+    /// - permissionDenied: Location services are denied.
+    /// - permissionRestricted: Location services are restricted.
     /// - underlying: An underlying Core Location or system error occurred.
     /// - unknown: An unspecified error occurred.
     enum LocationError: LocalizedError {
         case permissionDenied
+        case permissionRestricted
         case underlying(Error)
         case unknown
         
         var errorDescription: String? {
             switch self {
             case .permissionDenied:
-                "Location access has been denied."
+                "Location access is disabled. You can enable it in Settings."
+            case .permissionRestricted:
+                "Location access is restricted on this device. You may need to contact a parent or device administrator."
             case .underlying(let error):
                 error.localizedDescription
             case .unknown:
-                "Unknown error."
+                "An unknown location error occurred."
             }
         }
     }
@@ -129,7 +133,10 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
             }
         case .notDetermined:
             manager.requestWhenInUseAuthorization()
-        case .restricted, .denied:
+        case .restricted:
+            manager.stopUpdatingLocation()
+            error = .permissionRestricted
+        case .denied:
             manager.stopUpdatingLocation()
             error = .permissionDenied
         @unknown default:

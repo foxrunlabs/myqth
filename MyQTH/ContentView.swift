@@ -1,6 +1,7 @@
 import CoreLocation
 import MapKit
 import SwiftUI
+import UIKit
 
 struct ContentView: View {
     private enum ZoomLevel: String, CaseIterable, Identifiable {
@@ -28,6 +29,8 @@ struct ContentView: View {
     }
     
     // MARK: - Properties
+    
+    @Environment(\.openURL) private var openURL
 
     @State private var locationManager = LocationManager()
 
@@ -78,11 +81,13 @@ struct ContentView: View {
                     MaidenheadGridContent(cells: gridCells)
                 }
 
-                Marker(
-                    callsign,
-                    systemImage: "antenna.radiowaves.left.and.right",
-                    coordinate: location?.coordinate ?? CLLocationCoordinate2D()
-                )
+                if let location {
+                    Marker(
+                        callsign,
+                        systemImage: "antenna.radiowaves.left.and.right",
+                        coordinate: location.coordinate
+                    )
+                }
             }
             .onMapCameraChange(frequency: .continuous) { context in
                 let cells = MaidenheadGrid(region: context.region).cells
@@ -152,16 +157,33 @@ struct ContentView: View {
                 .accessibilityLabel("Opens details with coordinates in multiple formats")
             }
             .alert("Location Error", isPresented: $showAlert) {
-                Button("OK") { locationManager.error = nil }
+                if case .permissionDenied? = locationManager.error {
+                    Button("Open Settings") {
+                        locationManager.error = nil
+
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            openURL(url)
+                        }
+                    }
+                }
+
+                Button("OK", role: .cancel) {
+                    locationManager.error = nil
+                }
             } message: {
-                Text(locationManager.error?.localizedDescription ?? "An unknown error occurred.")
+                Text(
+                    locationManager.error?.localizedDescription
+                        ?? "An unknown location error occurred."
+                )
             }
             .sheet(isPresented: $showSettings) { SettingsView(locationManager: locationManager) }
             .sheet(isPresented: $showDetails) {
                 if let location { DetailsView(location: location) }
             }
         }
-        .onChange(of: locationManager.error != nil) { _, hasError in showAlert = hasError }
+        .onChange(of: locationManager.error != nil, initial: true) { _, hasError in
+            showAlert = hasError
+        }
         .onChange(of: location, initial: true) { oldLocation, _ in
             if oldLocation == nil || !locationManager.autoUpdate {
                 updateCameraPosition(span: zoom.span)
