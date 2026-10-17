@@ -280,8 +280,8 @@ extension UTMCoordinate {
         /// Formats a `UTMCoordinate` into the string format "<zone><hemisphere> <easting> <northing>".
         /// Easting and northing values are snapped to the selected precision before formatting.
         func format(_ value: FormatInput) -> FormatOutput {
-            let snappedEasting = value.easting / precision.snapFactor
-            let snappedNorthing = value.northing / precision.snapFactor
+            let snappedEasting = (value.easting / precision.snapFactor) * precision.snapFactor
+            let snappedNorthing = (value.northing / precision.snapFactor) * precision.snapFactor
             
             let eastingFormatter = Self.makeFormatter(minDigits: precision.minimumEastingDigits)
             let northingFormatter = Self.makeFormatter(minDigits: precision.minimumNorthingDigits)

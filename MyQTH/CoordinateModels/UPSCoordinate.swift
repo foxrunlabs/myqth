@@ -212,8 +212,8 @@ extension UPSCoordinate {
         /// - Parameter value: The `UPSCoordinate` to format.
         /// - Returns: A string representing the formatted UPS coordinate.
         func format(_ value: FormatInput) -> FormatOutput {
-            let snappedEasting = value.easting / precision.snapFactor
-            let snappedNorthing = value.northing / precision.snapFactor
+            let snappedEasting = (value.easting / precision.snapFactor) * precision.snapFactor
+            let snappedNorthing = (value.northing / precision.snapFactor) * precision.snapFactor
             
             let formatter = NumberFormatter()
             formatter.minimumIntegerDigits = precision.minimumDigits
