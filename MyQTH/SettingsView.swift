@@ -7,6 +7,7 @@ struct SettingsView: View {
     @AppStorage("net.thefoxrun.labs.MyQTH.displayGrid") private var displayGrid = true
     @Environment(\.dismiss) private var dismiss
     private let contactURL = URL(string: "mailto:labs@thefoxrun.net")!
+    private let privacyURL = URL(string: "https://labs.thefoxrun.net/myqth/privacy.html")!
     
     // MARK: - Body
     
@@ -37,10 +38,12 @@ struct SettingsView: View {
                     .sensoryFeedback(.selection, trigger: locationManager.autoUpdate)
                 }
                 
-                Section("About") {
-                    Text(Bundle.main.copyright)
+                Section("Support and Legal") {
+                    
                     Text("Version " + Bundle.main.versionString)
                     Link(destination: contactURL) { Label("Contact", systemImage: "envelope") }
+                    Link(destination: privacyURL) { Label("Privacy Policy", systemImage: "lock") }
+                    Text(Bundle.main.copyright)
                 }
             }
             .navigationTitle("Settings")
