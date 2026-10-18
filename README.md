@@ -33,7 +33,6 @@ Built with SwiftUI, MapKit, and Core Location, MyQTH presents the current locati
 - Choose between:
   - On-demand location updates
   - Continuous location updates
-- Pan and zoom the map independently while continuous updates are enabled
 - Copy coordinate values using standard iOS text selection
 - Handle Core Location authorization and location errors
 
@@ -69,7 +68,7 @@ Degrees Minutes Seconds
 MyQTH implements WGS 84 Universal Transverse Mercator conversion for locations between 80°S and 84°N, including the special UTM zone rules for Norway and Svalbard.
 
 ```text
-18N 69060 462224
+18N 690600 4622240
 UTM
 ```
 

@@ -17,7 +17,7 @@ You can grant or revoke location permission in your device’s Settings. Without
 MyQTH stores the following locally:
 
 - Your callsign, if you enter one.
-- Preferences such as map zoom, grid visibility, and automatic position updates.
+- Preferences such as map zoom and grid visibility.
 - Your last known latitude, longitude, horizontal accuracy, and location timestamp.
 
 The saved location allows the app to restore your last known position when reopened. It is replaced when a new location is received. MyQTH does not maintain a location history.
