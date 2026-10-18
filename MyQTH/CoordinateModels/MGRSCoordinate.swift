@@ -4,19 +4,80 @@ import Foundation
 /// Represents a Military Grid Reference System (MGRS) coordinate, used for specifying locations on the Earth's surface
 /// using a combination of grid zones, latitude bands, grid squares, and metric easting/northing values.
 nonisolated struct MGRSCoordinate: Equatable, Sendable {
-    /// The zone number of the MGRS coordinate, representing one of the 60 longitudinal UTM zones.
-    typealias Zone = Int
+    /// MGRS grid-zone designators
+    enum GridZone: CustomStringConvertible, Equatable, Sendable {
+        /// UTM zone number (1-60) and latitude band ('C' through 'X' excluding 'I' and 'O')
+        case utm(zone: Int, band: Character)
+        
+        /// UPS zone ('A', 'B', 'Y', or 'Z')
+        case ups(zone: UPSCoordinate.Zone)
+        
+        var description: String {
+            switch self {
+            case .utm(let zone, let band):
+                "\(zone)\(band)"
+
+            case .ups(let zone):
+                "\(zone)"
+            }
+        }
+    }
+    
+    /// Defines the zone-specific letters and origins for UPS-based MGRS 100 km grid squares.
+    private struct UPSGrid {
+        /// The grid square column letters, ordered by increasing easting.
+        let columnLetters: [Character]
+
+        /// The grid square row letters, ordered by increasing northing.
+        let rowLetters: [Character]
+
+        /// The UPS easting, in meters, at the start of the first column.
+        let columnOrigin: Int
+
+        /// The UPS northing, in meters, at the start of the first row.
+        let rowOrigin: Int
+
+        // MARK: - Initializers
+        
+        /// Creates the 100 km grid parameters for the specified UPS zone.
+        ///
+        /// - Parameter zone: The UPS grid zone whose column letters, row letters, and coordinate origins to use.
+        init(zone: UPSCoordinate.Zone) {
+            switch zone {
+            case .a:
+                columnLetters = Array("JKLPQRSTUXYZ")
+                rowLetters = Array("ABCDEFGHJKLMNPQRSTUVWXYZ")
+                columnOrigin = 800_000
+                rowOrigin = 800_000
+
+            case .b:
+                columnLetters = Array("ABCFGHJKLPQR")
+                rowLetters = Array("ABCDEFGHJKLMNPQRSTUVWXYZ")
+                columnOrigin = 2_000_000
+                rowOrigin = 800_000
+
+            case .y:
+                columnLetters = Array("RSTUXYZ")
+                rowLetters = Array("ABCDEFGHJKLMNP")
+                columnOrigin = 1_300_000
+                rowOrigin = 1_300_000
+
+            case .z:
+                columnLetters = Array("ABCFGHJ")
+                rowLetters = Array("ABCDEFGHJKLMNP")
+                columnOrigin = 2_000_000
+                rowOrigin = 1_300_000
+            }
+        }
+    }
     
     /// The easting and northing values are measured in meters within a given grid square.
     typealias Meters = Int
     
     // MARK: - Properties
     
-    /// The UTM zone number (1-60) of the coordinate.
-    let zone: Zone
-    
-    /// The latitude band character ('C' through 'X' excluding 'I' and 'O') indicating the latitude range for the coordinate.
-    let latitudeBand: Character
+    /// The grid-zone of the coordinate.
+    let gridZone: GridZone
     
     /// The 100km grid square identifier consisting of two letters.
     let gridSquare: String
@@ -45,66 +106,100 @@ nonisolated struct MGRSCoordinate: Equatable, Sendable {
     /// Creates an `MGRSCoordinate` with default values equating to 0° N, 0° E:
     /// zone 31, latitude band 'N', grid square "AA", easting 66021 meters, and northing 0 meters.
     init() {
-        self.zone = 31
-        self.latitudeBand = "N"
+        self.gridZone = .utm(zone: 31, band: "N")
         self.gridSquare = "AA"
         self.easting = 66021
         self.northing = 0
     }
     
-    /// Creates an `MGRSCoordinate` with the specified values.
+    /// Creates an `MGRSCoordinate` from already-validated components without checking them.
+    /// Grid-zone and square letters must be valid together; offsets must be in `0..<100_000`.
     ///
     /// - Parameters:
-    ///   - zone: The UTM zone number.
-    ///   - latitudeBand: The MGRS latitude band character.
+    ///   - gridZone: MGRS grid-zone.
     ///   - gridSquare: The 100km grid square identifier.
     ///   - easting: The easting value in meters within the grid square.
     ///   - northing: The northing value in meters within the grid square.
-    init(zone: Zone, latitudeBand: Character, gridSquare: String, easting: Meters, northing: Meters) {
-        self.zone = zone
-        self.latitudeBand = latitudeBand
+    init(gridZone: GridZone, gridSquare: String, easting: Meters, northing: Meters) {
+        self.gridZone = gridZone
         self.gridSquare = gridSquare
         self.easting = easting
         self.northing = northing
     }
     
-    /// Initializes an `MGRSCoordinate` from a valid geographic coordinate.
+    /// Initializes an `MGRSCoordinate` from a valid WGS 84 geographic coordinate.
+    /// Uses UTM for −80° ≤ latitude < 84° and UPS elsewhere, including both poles.
+    /// Projected coordinates are rounded down to whole meters before selecting the grid square.
     ///
     /// - Parameter coordinate: A valid `CLLocationCoordinate2D` representing latitude and longitude.
     /// - Throws: `MGRSCoordinate.Error.invalidCoordinate` if the coordinate is invalid.
-    ///           `MGRSCoordinate.Error.invalidLatitude` if the latitude is outside the valid MGRS range (-80 to 84 degrees).
+    ///           `MGRSCoordinate.Error.invalidProjectedCoordinate` if the projection is invalid.
     init(from coordinate: CLLocationCoordinate2D) throws {
         guard CLLocationCoordinate2DIsValid(coordinate) else {
             throw Error.invalidCoordinate(coordinate)
         }
         
-        guard (-80.0...84.0).contains(coordinate.latitude) else {
-            throw Error.invalidLatitude(coordinate.latitude)
+        if (-80.0..<84.0).contains(coordinate.latitude) {
+            // UTM-based MGRS
+            let utm = try UTMCoordinate(from: coordinate)
+            
+            // grid-zone designator
+            let index = max(0, min(Int(floor(coordinate.latitude / 8.0)) + 10, 19))
+            let band = Self.latitudeBands[index]
+            self.gridZone = .utm(zone: utm.zone, band: band)
+            
+            // 100 km grid square
+            guard (1...60).contains(utm.zone),
+                  (100_000..<900_000).contains(utm.easting),
+                  (0..<10_000_000).contains(utm.northing)
+            else {
+                throw Error.invalidProjectedCoordinate
+            }
+            
+            let setNumber = (utm.zone - 1) % 3
+            let columnLetters = Self.columnLettersSets[setNumber]
+            let columnIndex = utm.easting / 100_000 - 1
+            let columnLetter = columnLetters[columnIndex]
+            
+            let row = (utm.northing / 100_000) % 20
+            let rowIndex = utm.zone.isMultiple(of: 2) ? (row + 5) % 20 : row
+            let rowLetter = Self.rowLetters[rowIndex]
+            
+            self.gridSquare = "\(columnLetter)\(rowLetter)"
+            
+            // easting and northing
+            self.easting = utm.easting % 100_000
+            self.northing = utm.northing % 100_000
+        } else {
+            // UPS-based MGRS
+            let ups = try UPSCoordinate(from: coordinate)
+            
+            // grid-zone designator
+            self.gridZone = .ups(zone: ups.zone)
+
+            // 100 km grid square
+            let grid = UPSGrid(zone: ups.zone)
+
+            let columnIndex = (ups.easting - grid.columnOrigin) / 100_000
+            let rowIndex = (ups.northing - grid.rowOrigin) / 100_000
+            
+            guard ups.easting >= grid.columnOrigin,
+                  ups.northing >= grid.rowOrigin,
+                  grid.columnLetters.indices.contains(columnIndex),
+                  grid.rowLetters.indices.contains(rowIndex)
+            else {
+                throw Error.invalidProjectedCoordinate
+            }
+
+            let columnLetter = grid.columnLetters[columnIndex]
+            let rowLetter = grid.rowLetters[rowIndex]
+
+            self.gridSquare = "\(columnLetter)\(rowLetter)"
+
+            // Position within 100 km grid square
+            self.easting = ups.easting % 100_000
+            self.northing = ups.northing % 100_000
         }
-        
-        // zone
-        let utm = try UTMCoordinate(from: coordinate)
-        self.zone = utm.zone
-        
-        // latitude band
-        let index = min(Int((coordinate.latitude + 80.0) / 8.0), 19)
-        self.latitudeBand = Self.latitudeBands[index]
-        
-        // 100km grid square
-        let setNumber = (utm.zone - 1) % 3
-        let columnLetters = Self.columnLettersSets[setNumber]
-        let columnIndex = utm.easting / 100_000 - 1
-        let columnLetter = columnLetters[columnIndex]
-        
-        let row = (utm.northing / 100_000) % 20
-        let rowIndex = zone.isMultiple(of: 2) ? (row + 5) % 20 : row
-        let rowLetter = Self.rowLetters[rowIndex]
-        
-        self.gridSquare = "\(columnLetter)\(rowLetter)"
-        
-        // easting and northing
-        self.easting = utm.easting % 100_000
-        self.northing = utm.northing % 100_000
     }
     
     // MARK: - Methods
@@ -130,16 +225,16 @@ extension MGRSCoordinate {
         /// Indicates the provided geographic coordinate is invalid.
         case invalidCoordinate(CLLocationCoordinate2D)
         
-        /// Indicates the latitude value is outside the valid range for MGRS coordinates (-80 to 84 degrees).
-        case invalidLatitude(CLLocationDegrees)
+        /// Indicates the projected coordinate is invalid.
+        case invalidProjectedCoordinate
         
         /// Provides a localized description of the error.
         var errorDescription: String? {
             switch self {
             case .invalidCoordinate:
-                return "Invalid coordinate"
-            case .invalidLatitude:
-                return "Invalid latitude"
+                "Invalid coordinate"
+            case .invalidProjectedCoordinate:
+                "Invalid projected coordinate"
             }
         }
         
@@ -147,9 +242,9 @@ extension MGRSCoordinate {
         var failureReason: String? {
             switch self {
             case .invalidCoordinate(let coordinate):
-                return "\(coordinate) is invalid."
-            case .invalidLatitude(let latitude):
-                return "\(latitude) is invalid. Latitude must be between -80 and 84 degrees."
+                "\(coordinate) is invalid."
+            case .invalidProjectedCoordinate:
+                "The projected coordinate is outside the supported MGRS grid."
             }
         }
     }
@@ -214,7 +309,7 @@ extension MGRSCoordinate {
             let easting = formatter.string(from: snappedEasting as NSNumber) ?? String(snappedEasting)
             let northing = formatter.string(from: snappedNorthing as NSNumber) ?? String(snappedNorthing)
             
-            return "\(value.zone)\(value.latitudeBand) \(value.gridSquare) \(easting) \(northing)"
+            return "\(value.gridZone) \(value.gridSquare) \(easting) \(northing)"
         }
         
         /// Returns a copy of this `FormatStyle` configured to use the specified precision.

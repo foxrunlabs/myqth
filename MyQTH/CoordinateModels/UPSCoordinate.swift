@@ -57,7 +57,7 @@ nonisolated struct UPSCoordinate: Equatable, Sendable {
         self.northing = 2_000_000
     }
     
-    /// Creates a UPS coordinate from its components.
+    /// Creates a UPS coordinate from already-validated components without checking their ranges.
     ///
     /// - Parameters:
     ///   - zone: UPS zone.
@@ -72,36 +72,31 @@ nonisolated struct UPSCoordinate: Equatable, Sendable {
     /// Creates a UPS coordinate from a WGS 84 latitude/longitude.
     ///
     /// - Note:
-    ///   - The supported latitude range is above 84° N and below 80° S.
-    ///   - Easting and northing values are truncated to the nearest meter.
+    ///   - The supported latitude range is at or above 84° N and below 80° S.
+    ///   - Easting and northing values are truncated to whole meters.
+    ///   - Zone letters follow projected easting: the dividing meridians (0° and ±180°)
+    ///     and the poles use the eastern zone (Z in the north, B in the south).
     ///   - No input normalization is performed; the result reflects the raw input coordinate.
     ///
     /// - Parameter coordinate: The WGS 84 latitude and longitude coordinate.
-    /// - Throws: `UTMCoordinate.Error.invalidCoordinate` if the coordinate is invalid.
-    ///           `UTMCoordinate.Error.invalidLatitude` if the latitude is outside the supported range.
+    /// - Throws: `UPSCoordinate.Error.invalidCoordinate` if the coordinate is invalid.
+    ///           `UPSCoordinate.Error.invalidLatitude` if the latitude is outside the supported range.
     init(from coordinate: CLLocationCoordinate2D) throws {
         guard CLLocationCoordinate2DIsValid(coordinate) else {
             throw Error.invalidCoordinate(coordinate)
         }
         
-        guard coordinate.latitude > 84 || coordinate.latitude < -80 else {
+        guard coordinate.latitude >= 84.0 || coordinate.latitude < -80.0 else {
             throw Error.invalidLatitude(coordinate.latitude)
         }
         
         let latitude = coordinate.latitude
         let longitude = coordinate.longitude
-        
-        // compute zone
-        self.zone = if latitude >= 0.0 {
-            (longitude >= 0.0) ? .z : .y
-        } else {
-            (longitude >= 0.0) ? .b : .a
-        }
+        let north = latitude >= 0.0
         
         // formula values and cached results
         let phi = degreesToRadians(latitude)
         let lambda = degreesToRadians(longitude)
-        
         let absPhi = abs(phi)
         let sinAbsPhi = sin(absPhi)
         
@@ -114,10 +109,18 @@ nonisolated struct UPSCoordinate: Equatable, Sendable {
         
         let rho = 2.0 * Self.a * Self.k0 * t / Self.c
         
-        self.easting = Meters((Self.falseEasting + rho * sin(lambda)).rounded())
+        // Both meridians lie exactly on the east/west dividing line. Avoid allowing sin(±π)
+        // floating-point error to select a side.
+        let sinLambda = (longitude == 0.0 || abs(longitude) == 180.0) ? 0.0 : sin(lambda)
         
-        let hemisphereSign = (latitude >= 0.0) ? -1.0 : 1.0
-        self.northing = Meters((Self.falseNorthing + hemisphereSign * rho * cos(lambda)).rounded())
+        self.easting = Meters(floor(Self.falseEasting + rho * sinLambda))
+        
+        let hemisphereSign = north ? -1.0 : 1.0
+        self.northing = Meters(floor(Self.falseNorthing + hemisphereSign * rho * cos(lambda)))
+        
+        // compute zone
+        let east = easting >= 2_000_000
+        self.zone = north ? (east ? .z : .y) : (east ? .b : .a)
     }
     
     // MARK: - Methods
@@ -161,7 +164,7 @@ extension UPSCoordinate {
             case .invalidCoordinate(let coordinate):
                 "\(coordinate) is invalid."
             case .invalidLatitude(let latitude):
-                "\(latitude) is invalid. Latitude must be above 84 or below -80 degrees."
+                "\(latitude) is invalid. Latitude must be at least 84 or below -80 degrees."
             }
         }
     }

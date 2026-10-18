@@ -7,6 +7,7 @@ import Testing
     // MARK: - Coordinate Conversion Tests
     
     @Suite("Coordinate Conversion Tests") struct CoordinateConversionTests {
+        // Reference values: WGS 84 PROJ projections, floored to whole meters.
         @Test("Projection Tests", arguments: [
             (
                 latitude: 41.714775,
@@ -14,8 +15,8 @@ import Testing
                 expected: UTMCoordinate(
                     zone: 18,
                     hemisphere: .north,
-                    easting: 689_067,
-                    northing: 4_620_605
+                    easting: 689_066,
+                    northing: 4_620_604
                 )
             ),
             (
@@ -24,7 +25,7 @@ import Testing
                 expected: UTMCoordinate(
                     zone: 56,
                     hemisphere: .south,
-                    easting: 334_369,
+                    easting: 334_368,
                     northing: 6_250_948
                 )
             ),
@@ -45,7 +46,7 @@ import Testing
                     zone: 31,
                     hemisphere: .south,
                     easting: 500_000,
-                    northing: 9_999_989
+                    northing: 9_999_988
                 )
             ),
             (
@@ -54,7 +55,7 @@ import Testing
                 expected: UTMCoordinate(
                     zone: 60,
                     hemisphere: .north,
-                    easting: 833_979,
+                    easting: 833_978,
                     northing: 0
                 )
             ),
@@ -99,8 +100,8 @@ import Testing
                     expected: UTMCoordinate(
                         zone: 31,
                         hemisphere: .north,
-                        easting: 557_771,
-                        northing: 8_324_581
+                        easting: 557_770,
+                        northing: 8_324_580
                     )
                 ),
                 (
@@ -110,7 +111,7 @@ import Testing
                         zone: 33,
                         hemisphere: .north,
                         easting: 500_000,
-                        northing: 8_323_607
+                        northing: 8_323_606
                     )
                 ),
                 (
@@ -120,7 +121,7 @@ import Testing
                         zone: 35,
                         hemisphere: .north,
                         easting: 442_229,
-                        northing: 8_324_581
+                        northing: 8_324_580
                     )
                 ),
                 (
@@ -129,7 +130,7 @@ import Testing
                     expected: UTMCoordinate(
                         zone: 37,
                         hemisphere: .north,
-                        easting: 384_520,
+                        easting: 384_519,
                         northing: 8_327_502
                     )
                 )

@@ -41,7 +41,7 @@ struct DetailsView: View {
         }
     }
     
-    private var isValidUTMLatitude: Bool { (-80.0...84.0).contains(coordinate.latitude) }
+    private var isValidUTMLatitude: Bool { (-80.0..<84.0).contains(coordinate.latitude) }
     
     private var utmCoordinate: AttributedString {
         do {

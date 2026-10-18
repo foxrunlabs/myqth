@@ -59,7 +59,7 @@ nonisolated struct UTMCoordinate: Equatable, Sendable {
         self.northing = 0
     }
     
-    /// Creates a UTM coordinate from its components.
+    /// Creates a UTM coordinate from already-validated components without checking their ranges.
     ///
     /// - Parameters:
     ///   - zone: The longitudinal UTM zone number (1–60).
@@ -76,9 +76,9 @@ nonisolated struct UTMCoordinate: Equatable, Sendable {
     /// Creates a UTM coordinate from a WGS 84 latitude/longitude.
     ///
     /// - Note:
-    ///   - The supported latitude range is −80° to 84°.
+    ///   - The supported latitude range is −80° through 84°, inclusive. MGRS selects UPS at 84°.
     ///   - Special-case handling is applied for southwest Norway and Svalbard zones.
-    ///   - Easting and northing values are truncated to the nearest meter.
+    ///   - Easting and northing values are rounded down to whole meters.
     ///   - No input normalization is performed; the result reflects the raw input coordinate.
     ///
     /// - Parameter coordinate: The WGS 84 latitude and longitude coordinate.
@@ -163,7 +163,7 @@ nonisolated struct UTMCoordinate: Equatable, Sendable {
             (5.0 - (18.0 * T) + T2 + (72.0 * C) - (58.0 * Self.ep2)) * A5 / 120.0
         ) + Self.falseEasting
         
-        self.easting = Meters(computedEasting.rounded())
+        self.easting = Meters(floor(computedEasting))
         
         // compute northing
         let computedNorthing = Self.k0 * (
@@ -175,19 +175,25 @@ nonisolated struct UTMCoordinate: Equatable, Sendable {
             )
         ) + (latitude < 0.0 ? Self.falseNorthing : 0.0)
         
-        self.northing = Meters(computedNorthing.rounded())
+        // Just south of the equator, floating-point addition can round up to 10,000,000.
+        // Keep southern northings below that excluded MGRS boundary before truncating.
+        let boundedNorthing = latitude < 0.0
+            ? min(computedNorthing, Self.falseNorthing.nextDown)
+            : computedNorthing
+
+        self.northing = Meters(floor(boundedNorthing))
     }
     
     // MARK: - Methods
     
     /// Formats the coordinate as "<zone><hemisphere> <easting> <northing>" using the default meter precision.
     ///
-    /// The output uses fixed-width integers, and values are truncated to the nearest meter (as stored).
+    /// The output uses zero-padded integers with minimum widths, and values are rounded down to whole meters (as stored).
     ///
     /// - Returns: The formatted UTM string.
     func formatted() -> String { FormatStyle().format(self) }
     
-    /// Formats the coordinate with the specified display precision, snapping easting and northing to the nearest multiple of that
+    /// Formats the coordinate with the specified display precision, truncating nonnegative easting and northing to the lower multiple of that
     /// precision.
     ///
     /// - Parameter precision: The desired display precision (meters, 10 m, 100 m, or 1 km).
@@ -237,8 +243,8 @@ extension UTMCoordinate {
         typealias FormatInput = UTMCoordinate
         typealias FormatOutput = String
         
-        /// Controls display precision by snapping easting and northing to the nearest multiple, and adjusting minimum digit widths
-        /// accordingly.
+        /// Controls display precision by truncating nonnegative easting and northing to the lower multiple, and adjusting
+        /// minimum digit widths accordingly.
         enum Precision: Int, Codable {
             /// Precision at the meter level.
             case meter = 1

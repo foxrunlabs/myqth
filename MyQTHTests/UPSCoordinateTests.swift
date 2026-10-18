@@ -7,6 +7,7 @@ import Testing
     // MARK: - Coordinate Conversion Tests
     
     @Suite("Coordinate Conversion Tests") struct CoordinateConversionTests {
+        // Reference values: WGS 84 PROJ projections, floored to whole meters.
         @Test("Projection Tests", arguments: [
             (
                 latitude: 90.0,
@@ -21,7 +22,7 @@ import Testing
             (
                 latitude: 85.0,
                 longitude: 0.0,
-                expected: UPSCoordinate(zone: .z, easting: 2_000_000, northing: 1_444_543)
+                expected: UPSCoordinate(zone: .z, easting: 2_000_000, northing: 1_444_542)
             ),
             (
                 latitude: -85.0,
@@ -29,9 +30,9 @@ import Testing
                 expected: UPSCoordinate(zone: .b, easting: 2_000_000, northing: 2_555_457)
             ),
             (
-                latitude: 85.0,
-                longitude: -45.0,
-                expected: UPSCoordinate(zone: .y, easting: 1_607_232, northing: 1_607_232)
+                latitude: 84.0,
+                longitude: 0.0,
+                expected: UPSCoordinate(zone: .z, easting: 2_000_000, northing: 1_333_272)
             ),
             (
                 latitude: 85.0,
@@ -41,27 +42,27 @@ import Testing
             (
                 latitude: 85.0,
                 longitude: 45.0,
-                expected: UPSCoordinate(zone: .z, easting: 2_392_768, northing: 1_607_232)
+                expected: UPSCoordinate(zone: .z, easting: 2_392_767, northing: 1_607_232)
             ),
             (
                 latitude: -85.0,
                 longitude: -45.0,
-                expected: UPSCoordinate(zone: .a, easting: 1_607_232, northing: 2_392_768)
+                expected: UPSCoordinate(zone: .a, easting: 1_607_232, northing: 2_392_767)
             ),
             (
                 latitude: -85.0,
                 longitude: 45.0,
-                expected: UPSCoordinate(zone: .b, easting: 2_392_768, northing: 2_392_768)
+                expected: UPSCoordinate(zone: .b, easting: 2_392_767, northing: 2_392_767)
             ),
             (
                 latitude: 85.0,
                 longitude: -135.0,
-                expected: UPSCoordinate(zone: .y, easting: 1_607_232, northing: 2_392_768)
+                expected: UPSCoordinate(zone: .y, easting: 1_607_232, northing: 2_392_767)
             ),
             (
                 latitude: 85.0,
                 longitude: 135.0,
-                expected: UPSCoordinate(zone: .z, easting: 2_392_768, northing: 2_392_768)
+                expected: UPSCoordinate(zone: .z, easting: 2_392_767, northing: 2_392_767)
             ),
             (
                 latitude: -85.0,
@@ -71,7 +72,7 @@ import Testing
             (
                 latitude: -85.0,
                 longitude: 135.0,
-                expected: UPSCoordinate(zone: .b, easting: 2_392_768, northing: 1_607_232)
+                expected: UPSCoordinate(zone: .b, easting: 2_392_767, northing: 1_607_232)
             ),
         ])
         func projectionTests(
@@ -86,7 +87,7 @@ import Testing
         
         @Suite("UPS Validation") struct UPSLimitsAndValidation {
             @Test("Latitude Validation", arguments: [
-                (latitude: 84.0, longitude: 0.0),
+                (latitude: 83.9999, longitude: 0.0),
                 (latitude: -80.0, longitude: 0.0)
             ])
             func latitudeValidation(
