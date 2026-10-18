@@ -56,8 +56,8 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     /// when authorization allows requesting location.
     var error: LocationError?
     
-    /// The most recently reported location from Core Location. Reset to `nil` when authorization is not determined,
-    /// restricted, or denied. Updated to the last value received in `didUpdateLocations` when available.
+    /// The most recently reported location from Core Location. Updated to the last value received in `didUpdateLocations`
+    /// when available.
     private(set) var location: CLLocation?
     
     // MARK: - Initializer
