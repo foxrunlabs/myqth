@@ -10,6 +10,21 @@ import Observation
 @MainActor
 @Observable
 final class LocationManager: NSObject, CLLocationManagerDelegate {
+    /// The status of a one-shot location request.
+    enum RequestState {
+        /// No location fix is in progress, including before a request or after a successful update.
+        case idle
+
+        /// Core Location is obtaining a location fix.
+        case locating
+
+        /// Authorization prevented the request or a location update failed; see the manager’s `error` for details.
+        case failed
+    }
+
+    /// Persists independently of alert presentation so dismissing an error does not hide a failure.
+    private(set) var requestState: RequestState = .idle
+
     /// A user-presentable error describing why location could not be obtained.
     enum LocationError: LocalizedError {
         /// Location services are denied.
@@ -53,8 +68,8 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     private(set) var authorizationStatus: CLAuthorizationStatus = .notDetermined
     
     /// The most recent error, suitable for presenting to the user. Set to `nil` when a location is successfully obtained or
-    /// when authorization allows requesting location.
-    var error: LocationError?
+    /// when a new request starts. Dismissing an alert leaves this error available for recovery.
+    private(set) var error: LocationError?
     
     /// The most recently reported location from Core Location. Updated to the last value received in `didUpdateLocations`
     /// when available.
@@ -76,9 +91,28 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     
     // MARK: - Methods
     
-    /// Requests a single location update.
+    /// Requests a single fix or explains why authorization prevents it. Duplicate requests are ignored.
     func requestLocation() {
-        manager.requestLocation()
+        guard requestState != .locating else { return }
+
+        switch authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            error = nil
+            requestState = .locating
+            manager.requestLocation()
+        case .notDetermined:
+            error = nil
+            manager.requestWhenInUseAuthorization()
+        case .denied:
+            error = .permissionDenied
+            requestState = .failed
+        case .restricted:
+            error = .permissionRestricted
+            requestState = .failed
+        @unknown default:
+            error = .unknown
+            requestState = .failed
+        }
     }
     
     // MARK: - CLLocationManagerDelegate Methods
@@ -93,36 +127,46 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         authorizationStatus = manager.authorizationStatus
         
-        switch manager.authorizationStatus {
-        case .authorizedAlways, .authorizedWhenInUse:
-            error = nil
-            manager.requestLocation()
-        case .notDetermined:
-            error = nil
-            manager.requestWhenInUseAuthorization()
-        case .restricted:
-            manager.stopUpdatingLocation()
-            error = .permissionRestricted
-        case .denied:
-            manager.stopUpdatingLocation()
-            error = .permissionDenied
-        @unknown default:
-            manager.stopUpdatingLocation()
-            error = .unknown
-        }
+        // Cancel any in-flight request before applying the new authorization state.
+        manager.stopUpdatingLocation()
+        requestState = .idle
+        requestLocation()
     }
-    
+
     /// Receives successful location updates, clears any previous error, and saves the last valid location.
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        location = locations.last
+        guard authorizationStatus == .authorizedAlways ||
+                authorizationStatus == .authorizedWhenInUse
+        else {
+            return
+        }
+
+        guard let latest = locations.last(where: {
+            $0.horizontalAccuracy >= 0 && CLLocationCoordinate2DIsValid($0.coordinate)
+        }) else {
+            error = .unknown
+            requestState = .failed
+            return
+        }
+
+        location = latest
         error = nil
-        
-        if let location { save(location) }
+        requestState = .idle
+        save(latest)
     }
     
     /// Receives location errors and wraps them in `LocationError.underlying`.
     func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
+        // Preserve the actionable permission error if a late callback arrives after revocation.
+        guard
+            authorizationStatus == .authorizedAlways ||
+                authorizationStatus == .authorizedWhenInUse
+        else {
+            return
+        }
+        
         self.error = .underlying(error)
+        requestState = .failed
     }
     
     /// Saves the last known location to standard user defaults.

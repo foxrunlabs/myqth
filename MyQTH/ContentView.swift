@@ -77,14 +77,16 @@ struct ContentView: View {
         guard let roundedCoordinate else { return nil }
         return try? MaidenheadLocator(from: roundedCoordinate)
     }
-
-    private var isUpdateDisabled: Bool {
+    
+    private var isPermissionUnavailable: Bool {
         locationManager.authorizationStatus == .denied ||
             locationManager.authorizationStatus == .restricted
     }
-    
-    private var isDetailDisabled: Bool { location == nil }
 
+    private var isUpdateDisabled: Bool {
+        isPermissionUnavailable || locationManager.requestState == .locating
+    }
+    
     // MARK: - Body
     
     var body: some View {
@@ -140,40 +142,12 @@ struct ContentView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                Button {
-                    showDetails = true
-                } label: {
-                    if let maidenheadLocator {
-                        HStack {
-                            Image(systemName: "globe")
-                            
-                            Text(maidenheadLocator.formatted())
-                                .font(.title)
-                            
-                            Image(systemName: "info")
-                                .symbolVariant(.circle)
-                        }
-                    } else {
-                        Text("Locating...")
-                            .font(.title)
-                    }
-                }
-                .buttonStyle(.glass)
-                .disabled(isDetailDisabled)
-                .accessibilityLabel("Opens details with coordinates in multiple formats")
+                locationStatusButton
+                    .font(.title)
+                    .buttonStyle(.glass)
             }
             .alert("Location Error", isPresented: $showAlert) {
-                if case .permissionDenied? = locationManager.error {
-                    Button("Open Settings") {
-                        locationManager.error = nil
-
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            openURL(url)
-                        }
-                    }
-                }
-
-                Button("OK", role: .cancel) { locationManager.error = nil }
+                errorButtons
             } message: {
                 Text(
                     locationManager.error?.localizedDescription
@@ -191,6 +165,93 @@ struct ContentView: View {
         .onChange(of: location, initial: true) { _, _ in
             updateCameraPosition(span: zoom.span)
         }
+    }
+
+    /// Failures take precedence over a saved position; full explanations remain in the alert.
+    @ViewBuilder
+    private var locationStatusButton: some View {
+        if locationManager.authorizationStatus == .denied {
+            Button {
+                showAlert = true
+            } label: {
+                HStack {
+                    Image(systemName: "location.slash.fill")
+                        .foregroundStyle(.red)
+                    
+                    Text("Enable Location")
+                }
+            }
+        } else if locationManager.authorizationStatus == .restricted {
+            Button {
+                showAlert = true
+            } label: {
+                HStack {
+                    Image(systemName: "lock.fill")
+                        .foregroundStyle(.red)
+                    
+                    Text("Location Restricted")
+                }
+            }
+        } else if locationManager.requestState == .locating {
+            Button { } label: {
+                HStack {
+                    ProgressView()
+                        .accessibilityHidden(true)
+                    
+                    Text("Locating…")
+                }
+            }
+            .disabled(true)
+        } else if locationManager.requestState == .failed {
+            Button {
+                locationManager.requestLocation()
+            } label: {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(.foreground, .yellow)
+                    
+                    Text("Retry Location")
+                }
+            }
+        } else if let maidenheadLocator {
+            Button { showDetails = true } label: {
+                HStack {
+                    Image(systemName: "globe")
+                        .foregroundStyle(Color.accentColor)
+                    
+                    Text(maidenheadLocator.formatted())
+                    
+                    Image(systemName: "info.circle")
+                        .foregroundStyle(Color.accentColor)
+                }
+            }
+            .accessibilityLabel("Maidenhead locator")
+            .accessibilityValue(maidenheadLocator.formatted())
+            .accessibilityHint("Opens position details")
+        } else {
+            Button("Get Location", systemImage: "location") {
+                locationManager.requestLocation()
+            }
+        }
+    }
+    
+    /// Button options for error alert.
+    @ViewBuilder
+    private var errorButtons: some View {
+        if locationManager.authorizationStatus == .denied {
+            Button("Open Settings") {
+                if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+            }
+        } else if !isPermissionUnavailable {
+            Button("Retry") { locationManager.requestLocation() }
+        }
+
+        if location != nil {
+            Button("View Last Position") { showDetails = true }
+        }
+
+        Button("OK", role: .cancel) { }
     }
 
     // MARK: - Methods
