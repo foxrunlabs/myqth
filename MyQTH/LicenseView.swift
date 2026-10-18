@@ -15,12 +15,12 @@ struct LicenseView: View {
     
     // MARK: - Body
     var body: some View {
-        VStack {
+        ScrollView {
             Text(license)
-            Spacer()
+                .font(.caption)
         }
+        .scrollBounceBehavior(.basedOnSize)
         .padding(10)
-        .font(.caption)
         .navigationTitle("License")
         .navigationBarTitleDisplayMode(.inline)
     }
